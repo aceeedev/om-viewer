@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { readPhotoMetadata } from "@/lib/exif";
-import { buildRecipe, type Recipe } from "@/lib/recipe";
+import type { Recipe } from "@/lib/recipe";
 import { DropZone } from "./drop-zone";
 import { FullView } from "./full-view";
+import { loadPhotoFile, loadPhotoUrl, type LoadResult } from "./load-photo";
 import { exposureSummary } from "./sections";
 import { SimpleView } from "./simple-view";
 
@@ -17,14 +17,15 @@ type ViewerState =
 type View = "simple" | "full";
 
 /**
- * Upload a photo and show its recipe. Everything happens in the browser: the file is read
- * with the File API and never sent anywhere.
+ * Open a photo and show its recipe. Everything happens in the browser: a file is read with the
+ * File API, a pasted link is downloaded by the browser itself, and the photo is never sent anywhere.
  */
 export function RecipeViewer() {
   const [state, setState] = useState<ViewerState>({ status: "idle" });
   const [view, setView] = useState<View>("simple");
   const [dragging, setDragging] = useState(false);
-  const latestRequest = useRef(0);
+  /** The photo being opened. Aborted when another one replaces it, so stale results are dropped. */
+  const inFlight = useRef<AbortController | null>(null);
 
   // Free the preview's object URL when it's replaced or the viewer unmounts.
   const previewUrl = state.status === "ready" ? state.previewUrl : null;
@@ -33,23 +34,24 @@ export function RecipeViewer() {
     return () => URL.revokeObjectURL(previewUrl);
   }, [previewUrl]);
 
-  const openFile = useCallback(async (file: File) => {
-    const request = ++latestRequest.current;
-    setState({ status: "reading", fileName: file.name });
-    try {
-      const result = await readPhotoMetadata(file);
-      if (request !== latestRequest.current) return; // a newer file was chosen meanwhile
-      if (!result.ok) {
-        setState({ status: "error", fileName: file.name, message: result.error.message });
-        return;
-      }
-      const recipe = buildRecipe(result.metadata);
-      setState({ status: "ready", fileName: file.name, recipe, previewUrl: URL.createObjectURL(file) });
-    } catch {
-      if (request !== latestRequest.current) return;
-      setState({ status: "error", fileName: file.name, message: "Something went wrong reading this photo." });
-    }
+  const open = useCallback(async (label: string, load: (signal: AbortSignal) => Promise<LoadResult>) => {
+    inFlight.current?.abort(); // stops a link that's still downloading
+    const controller = new AbortController();
+    inFlight.current = controller;
+    setState({ status: "reading", fileName: label });
+    const result = await load(controller.signal);
+    if (controller.signal.aborted) return; // a newer photo was opened meanwhile, or the viewer unmounted
+    setState(
+      result.ok
+        ? { status: "ready", fileName: result.fileName, recipe: result.recipe, previewUrl: URL.createObjectURL(result.file) }
+        : { status: "error", fileName: result.fileName, message: result.message },
+    );
   }, []);
+
+  const openFile = useCallback((file: File) => open(file.name, () => loadPhotoFile(file)), [open]);
+  const openUrl = useCallback((url: string) => open(url.trim(), (signal) => loadPhotoUrl(url, signal)), [open]);
+
+  useEffect(() => () => inFlight.current?.abort(), []);
 
   // Accept files dropped anywhere on the page (and stop the browser from opening them).
   useEffect(() => {
@@ -93,13 +95,14 @@ export function RecipeViewer() {
   if (state.status !== "ready") {
     return (
       <div className="flex flex-col gap-4">
-        <DropZone onFile={openFile} dragging={dragging} busy={state.status === "reading"} />
+        <DropZone onFile={openFile} onUrl={openUrl} dragging={dragging} busy={state.status === "reading"} />
         {state.status === "error" && (
           <p
             role="alert"
             className="rounded-md border-[1.5px] border-red-700 bg-red-50 px-4 py-3 text-sm text-red-800"
           >
-            <span className="font-medium">{state.fileName}:</span> {state.message}
+            {/* wrap-anywhere: a pasted link has no spaces to break at. */}
+            <span className="font-medium wrap-anywhere">{state.fileName}:</span> {state.message}
           </p>
         )}
       </div>
@@ -127,7 +130,7 @@ export function RecipeViewer() {
           {cameraLine && <p className="font-medium">{cameraLine}</p>}
           {summary && <p className="text-sm text-zinc-600">{summary}</p>}
         </header>
-        <DropZone onFile={openFile} dragging={dragging} compact />
+        <DropZone onFile={openFile} onUrl={openUrl} dragging={dragging} compact />
       </div>
 
       <div className="flex min-w-0 flex-col gap-6">

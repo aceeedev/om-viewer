@@ -2,6 +2,8 @@ import { useId } from "react";
 
 interface DropZoneProps {
   onFile: (file: File) => void;
+  /** Open a pasted image link. The field for it comes in the next step. */
+  onUrl?: (url: string) => void;
   /** A file is being dragged over the page (drops are handled page-wide by the viewer). */
   dragging: boolean;
   busy?: boolean;

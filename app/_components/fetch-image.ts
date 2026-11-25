@@ -7,6 +7,7 @@ export type FetchImageErrorCode =
   | "web-page"
   | "not-jpeg"
   | "too-large"
+  | "timeout"
   | "aborted";
 
 export interface FetchImageError {
@@ -19,6 +20,15 @@ export type FetchImageResult = { ok: true; file: File } | { ok: false; error: Fe
 /** Larger than any camera JPEG; stops a bad link from filling the tab's memory. */
 export const MAX_IMAGE_BYTES = 64 * 1024 * 1024;
 
+/** Give up when the host sends nothing (no reply, or no new data) for this long. */
+export const STALL_TIMEOUT_MS = 30_000;
+
+export interface FetchImageOptions {
+  /** Stops the download, e.g. when another photo is opened. */
+  signal?: AbortSignal;
+  stallTimeoutMs?: number;
+}
+
 const FALLBACK_NAME = "photo.jpg";
 
 /**
@@ -27,7 +37,10 @@ const FALLBACK_NAME = "photo.jpg";
  * other sites to read it (CORS); otherwise the result says so and suggests downloading the photo instead.
  * Never throws; failures come back as `{ ok: false }`.
  */
-export async function fetchImageFromUrl(input: string, signal?: AbortSignal): Promise<FetchImageResult> {
+export async function fetchImageFromUrl(
+  input: string,
+  { signal, stallTimeoutMs = STALL_TIMEOUT_MS }: FetchImageOptions = {},
+): Promise<FetchImageResult> {
   let url: URL;
   try {
     url = new URL(input.trim());
@@ -38,13 +51,25 @@ export async function fetchImageFromUrl(input: string, signal?: AbortSignal): Pr
   // An https page can't load http:// content (mixed content); the browser would only say "failed to fetch".
   if (url.protocol === "http:" && globalThis.location?.protocol === "https:") return failure("insecure");
 
+  // The timer restarts whenever data arrives, so a slow but steady download still finishes,
+  // while a host that stops answering fails instead of leaving "Reading…" up forever.
+  const stall = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const progress = () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => stall.abort(), stallTimeoutMs);
+  };
+  const abortSignal = signal ? AbortSignal.any([signal, stall.signal]) : stall.signal;
+
   try {
+    progress();
     const response = await fetch(url, {
-      signal,
+      signal: abortSignal,
       mode: "cors",
       credentials: "omit", // never send the visitor's cookies for that site
       referrerPolicy: "no-referrer", // and don't tell it which page asked
     });
+    progress();
     if (!response.ok) return httpFailure(response.status);
 
     const mime = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
@@ -55,33 +80,52 @@ export async function fetchImageFromUrl(input: string, signal?: AbortSignal): Pr
     const length = Number(response.headers.get("content-length"));
     if (length > MAX_IMAGE_BYTES) return failure("too-large");
 
-    const bytes = await readCapped(response, MAX_IMAGE_BYTES);
+    const bytes = await readCapped(response, MAX_IMAGE_BYTES, abortSignal, progress);
     if (!bytes) return failure("too-large");
     return { ok: true, file: new File(bytes, fileNameFrom(url), { type: "image/jpeg" }) };
-  } catch (e) {
-    if (e instanceof DOMException && e.name === "AbortError") return failure("aborted");
+  } catch {
+    if (signal?.aborted) return failure("aborted");
+    if (stall.signal.aborted) return failure("timeout");
     // fetch() rejects with a bare TypeError for CORS refusals, network errors and offline hosts alike.
     return failure("blocked");
+  } finally {
+    clearTimeout(timer);
   }
 }
 
 const JPEG_TYPES = new Set(["image/jpeg", "image/jpg", "image/pjpeg"]);
 
-/** The body's chunks, or null as soon as it passes `max` bytes (the size header can be missing or wrong). */
-async function readCapped(response: Response, max: number): Promise<Uint8Array<ArrayBuffer>[] | null> {
+/**
+ * The body's chunks, or null as soon as it passes `max` bytes (the size header can be missing or wrong).
+ * Throws if `signal` aborts partway, so a cut-off download is never mistaken for a whole one.
+ */
+async function readCapped(
+  response: Response,
+  max: number,
+  signal: AbortSignal,
+  onChunk: () => void,
+): Promise<Uint8Array<ArrayBuffer>[] | null> {
   const chunks: Uint8Array<ArrayBuffer>[] = [];
   if (!response.body) return chunks;
   const reader = response.body.getReader();
-  let total = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) return chunks;
-    total += value.byteLength;
-    if (total > max) {
-      void reader.cancel();
-      return null;
+  const stop = () => void reader.cancel().catch(() => {});
+  signal.addEventListener("abort", stop, { once: true });
+  try {
+    let total = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      signal.throwIfAborted();
+      if (done) return chunks;
+      onChunk();
+      total += value.byteLength;
+      if (total > max) {
+        stop();
+        return null;
+      }
+      chunks.push(value);
     }
-    chunks.push(value);
+  } finally {
+    signal.removeEventListener("abort", stop);
   }
 }
 
@@ -132,5 +176,6 @@ const MESSAGES: Record<FetchImageErrorCode, string> = {
   "web-page": "That link opens a web page, not the image itself. Open the photo, then copy the image's own address.",
   "not-jpeg": "That link isn't a JPEG.",
   "too-large": `That image is over ${MAX_IMAGE_BYTES / 1024 / 1024} MB, too big to open here.`,
+  timeout: "That site stopped responding. Try again, or download the photo and drop it here instead.",
   aborted: "Stopped loading that link.",
 };

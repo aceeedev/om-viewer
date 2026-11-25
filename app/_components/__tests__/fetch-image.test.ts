@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildOmJpeg } from "@/lib/exif/__tests__/helpers/build-jpeg";
 import { readPhotoMetadata } from "@/lib/exif";
-import { fetchImageFromUrl, fileNameFrom, MAX_IMAGE_BYTES } from "../fetch-image";
+import { fetchImageFromUrl, fileNameFrom, MAX_IMAGE_BYTES, STALL_TIMEOUT_MS } from "../fetch-image";
 
 /** Answer every fetch() with this response (or throw this error), and record what was asked. */
 function stubFetch(answer: Response | Error) {
@@ -11,6 +11,20 @@ function stubFetch(answer: Response | Error) {
   });
   vi.stubGlobal("fetch", fetch);
   return fetch;
+}
+
+/** A host that never answers: the request only ends when its signal aborts. */
+function stubHungFetch() {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn<typeof globalThis.fetch>(
+      (...args) =>
+        new Promise((_, reject) => {
+          const signal = args[1]?.signal;
+          signal?.addEventListener("abort", () => reject(signal.reason));
+        }),
+    ),
+  );
 }
 
 const jpeg = (headers: HeadersInit = { "content-type": "image/jpeg" }) =>
@@ -24,6 +38,7 @@ async function errorCode(url: string) {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 describe("fetchImageFromUrl", () => {
@@ -79,9 +94,56 @@ describe("fetchImageFromUrl", () => {
     if (!result.ok) expect(result.error.message).toContain("drop it here instead");
   });
 
-  it("reports when it was stopped", async () => {
-    stubFetch(new DOMException("The operation was aborted.", "AbortError"));
-    expect(await errorCode("https://example.com/a.jpg")).toBe("aborted");
+  it("stops when its signal aborts", async () => {
+    stubHungFetch();
+    const controller = new AbortController();
+    const pending = fetchImageFromUrl("https://example.com/a.jpg", { signal: controller.signal });
+    controller.abort();
+    expect(await pending).toMatchObject({ ok: false, error: { code: "aborted" } });
+  });
+
+  it("gives up when the host never answers", async () => {
+    vi.useFakeTimers();
+    stubHungFetch();
+    const pending = fetchImageFromUrl("https://example.com/a.jpg");
+    await vi.advanceTimersByTimeAsync(STALL_TIMEOUT_MS);
+    expect(await pending).toMatchObject({ ok: false, error: { code: "timeout" } });
+  });
+
+  it("gives up when the download stalls partway, rather than returning half a photo", async () => {
+    vi.useFakeTimers();
+    let sentFirst = false;
+    const stalled = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (!sentFirst) controller.enqueue(buildOmJpeg().slice(0, 100));
+        sentFirst = true;
+        return new Promise(() => {}); // nothing more, ever
+      },
+    });
+    stubFetch(new Response(stalled));
+    const pending = fetchImageFromUrl("https://example.com/a.jpg");
+    await vi.advanceTimersByTimeAsync(STALL_TIMEOUT_MS);
+    expect(await pending).toMatchObject({ ok: false, error: { code: "timeout" } });
+  });
+
+  it("lets a slow but steady download finish, however long it takes in total", async () => {
+    vi.useFakeTimers();
+    const bytes = buildOmJpeg();
+    const third = Math.ceil(bytes.byteLength / 3);
+    let part = 0;
+    const slow = new ReadableStream<Uint8Array>({
+      async pull(controller) {
+        await new Promise((resolve) => setTimeout(resolve, STALL_TIMEOUT_MS * 0.8));
+        if (part === 3) return controller.close();
+        controller.enqueue(bytes.slice(part * third, ++part * third));
+      },
+    });
+    stubFetch(new Response(slow));
+    const pending = fetchImageFromUrl("https://example.com/a.jpg");
+    await vi.advanceTimersByTimeAsync(STALL_TIMEOUT_MS * 4);
+    const result = await pending;
+    if (!result.ok) throw new Error(result.error.message);
+    expect(result.file.size).toBe(bytes.byteLength);
   });
 
   it("names the HTTP error", async () => {
