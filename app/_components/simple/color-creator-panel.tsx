@@ -59,8 +59,7 @@ function ColorCreatorWheel({ hue, saturation }: { hue: Ranged; saturation: Range
     hueAngle(step, count),
   );
   const color = hueStepColor(step, count);
-  const box = WHEEL.outline;
-  const fill = colorWheelFill(PALETTE, Array.from({ length: count }, (_, i) => corner(WHEEL.outline, i)));
+  const fill = colorWheelFill(PALETTE, Array.from({ length: count }, (_, i) => corner(WHEEL.outline, i)), CENTER);
 
   return (
     <PanelColumn>
@@ -76,52 +75,53 @@ function ColorCreatorWheel({ hue, saturation }: { hue: Ranged; saturation: Range
           </li>
         )}
       </ul>
-      <svg
-        viewBox={`0 0 ${WHEEL.size} ${WHEEL.size}`}
-        aria-hidden="true"
-        className={`block w-full tabular-nums ${SCREEN}`}
-      >
-        <g fontSize={17} fontWeight={600} fill="white">
-          <text x={VALUES_INSET} y={VALUES_Y} dominantBaseline="central">
-            Hue<tspan className="fill-amber-400">*</tspan> {hue.value}
-          </text>
-          {saturation && (
-            <text x={WHEEL.size - VALUES_INSET} y={VALUES_Y} textAnchor="end" dominantBaseline="central">
-              Saturation {fmt.level(saturation.value)}
+      {/* The color wheel's face lies under the SVG, which draws everything else over it. */}
+      <div className={`relative ${SCREEN}`}>
+        <div aria-hidden="true" style={fill} />
+        <svg
+          viewBox={`0 0 ${WHEEL.size} ${WHEEL.size}`}
+          aria-hidden="true"
+          className="relative block w-full tabular-nums"
+        >
+          <g fontSize={17} fontWeight={600} fill="white">
+            <text x={VALUES_INSET} y={VALUES_Y} dominantBaseline="central">
+              Hue<tspan className="fill-amber-400">*</tspan> {hue.value}
             </text>
-          )}
-        </g>
-        <g transform={`translate(${CENTER[0]} ${CENTER[1]})`}>
-          <foreignObject x={-box} y={-box} width={2 * box} height={2 * box}>
-            <div style={fill} />
-          </foreignObject>
-          {/* Dim the wheel, except the wedge toward the hue in use. */}
-          <path d={`M${outline}Z M${wedge}Z`} fill="black" fillOpacity={0.5} fillRule="evenodd" />
-          {saturation && (
-            <g stroke="white" strokeWidth={1} fill="none" strokeOpacity={0.5}>
-              <polygon points={ring(WHEEL.minRadius)} fill={`rgb(${CENTER_GRAY})`} fillOpacity={0.35} />
-              <polygon points={ring(levelRadius(0, saturation.min, saturation.max))} />
-            </g>
-          )}
-          {Array.from({ length: count }, (_, i) => (
-            <polygon key={i} points={outlineSide(i, count, rotation)} fill={hueStepColor(i, count)} />
-          ))}
-          <line x1={0} y1={0} x2={tip[0]} y2={tip[1]} stroke="white" strokeWidth={2} strokeLinecap="round" />
-          <circle r={3} fill="white" />
-          <circle
-            cx={tip[0]}
-            cy={tip[1]}
-            r={WHEEL.dot}
-            fill={color}
-            stroke="white"
-            strokeOpacity={0.85}
-            strokeWidth={1.25}
-            style={{ filter: "drop-shadow(0 1px 2px rgb(0 0 0 / 0.5))" }}
-          >
-            <title>{`Hue ${hue.value}${saturation ? `, saturation ${fmt.signed(saturation.value)}` : ""}`}</title>
-          </circle>
-        </g>
-      </svg>
+            {saturation && (
+              <text x={WHEEL.size - VALUES_INSET} y={VALUES_Y} textAnchor="end" dominantBaseline="central">
+                Saturation {fmt.level(saturation.value)}
+              </text>
+            )}
+          </g>
+          <g transform={`translate(${CENTER[0]} ${CENTER[1]})`}>
+            {/* Dim the wheel, except the wedge toward the hue in use. */}
+            <path d={`M${outline}Z M${wedge}Z`} fill="black" fillOpacity={0.5} fillRule="evenodd" />
+            {saturation && (
+              <g stroke="white" strokeWidth={1} fill="none" strokeOpacity={0.5}>
+                <polygon points={ring(WHEEL.minRadius)} fill={`rgb(${CENTER_GRAY})`} fillOpacity={0.35} />
+                <polygon points={ring(levelRadius(0, saturation.min, saturation.max))} />
+              </g>
+            )}
+            {Array.from({ length: count }, (_, i) => (
+              <polygon key={i} points={outlineSide(i, count, rotation)} fill={hueStepColor(i, count)} />
+            ))}
+            <line x1={0} y1={0} x2={tip[0]} y2={tip[1]} stroke="white" strokeWidth={2} strokeLinecap="round" />
+            <circle r={3} fill="white" />
+            <circle
+              cx={tip[0]}
+              cy={tip[1]}
+              r={WHEEL.dot}
+              fill={color}
+              stroke="white"
+              strokeOpacity={0.85}
+              strokeWidth={1.25}
+              style={{ filter: "drop-shadow(0 1px 2px rgb(0 0 0 / 0.5))" }}
+            >
+              <title>{`Hue ${hue.value}${saturation ? `, saturation ${fmt.signed(saturation.value)}` : ""}`}</title>
+            </circle>
+          </g>
+        </svg>
+      </div>
     </PanelColumn>
   );
 }

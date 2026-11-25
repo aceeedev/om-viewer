@@ -27,86 +27,85 @@ export function HueWheel({ hues }: { hues: HueSaturation[] }) {
   const c = WHEEL.size / 2;
 
   // The color wheel: each hue at its corner, blending into the next, fading to gray toward the
-  // middle, clipped to the outline.
+  // middle, clipped to the outline. Under the SVG, which draws everything else over it.
   const fill = colorWheelFill(colors, hues.map((_, i) => at(WHEEL.outline, i)));
-  const box = WHEEL.outline;
 
   return (
     <div>
-      <svg
-        viewBox={`0 0 ${WHEEL.size} ${WHEEL.size}`}
-        aria-hidden="true"
-        className={`block w-full tabular-nums ${SCREEN}`}
-      >
-        <defs>
-          {/* One gradient per side of the outline, from its hue to the next. */}
-          {hues.map((_, i) => {
-            const [x1, y1] = at(WHEEL.outline, i);
-            const [x2, y2] = at(WHEEL.outline, i + 1);
-            return (
-              <linearGradient key={i} id={`${id}-side-${i}`} gradientUnits="userSpaceOnUse" x1={x1} y1={y1} x2={x2} y2={y2}>
-                <stop offset="0" stopColor={colors[i]} />
-                <stop offset="1" stopColor={colors[(i + 1) % count]} />
-              </linearGradient>
-            );
-          })}
-        </defs>
-        <g transform={`translate(${c} ${c})`}>
-          <foreignObject x={-box} y={-box} width={2 * box} height={2 * box}>
-            <div style={fill} />
-          </foreignObject>
-          {/* Dim the wheel outside the hues' shape and light it inside. */}
-          <path d={`M${outline}Z M${shape}Z`} fill="black" fillOpacity={0.5} fillRule="evenodd" />
-          <polygon points={shape} fill="white" fillOpacity={0.38} />
-          {/* The grid: spokes, the minimum ring around the gray middle, and the ring at 0. */}
-          <g stroke="white" strokeWidth={1} fill="none">
-            {hues.map((h, i) => {
-              const [x1, y1] = at(WHEEL.minRadius, i);
-              const [x2, y2] = at(WHEEL.outline, i);
-              return <line key={h.hue} x1={x1} y1={y1} x2={x2} y2={y2} strokeOpacity={0.14} />;
+      <div className={`relative ${SCREEN}`}>
+        <div aria-hidden="true" style={fill} />
+        <svg
+          viewBox={`0 0 ${WHEEL.size} ${WHEEL.size}`}
+          aria-hidden="true"
+          className="relative block w-full tabular-nums"
+        >
+          <defs>
+            {/* One gradient per side of the outline, from its hue to the next. */}
+            {hues.map((_, i) => {
+              const [x1, y1] = at(WHEEL.outline, i);
+              const [x2, y2] = at(WHEEL.outline, i + 1);
+              return (
+                <linearGradient key={i} id={`${id}-side-${i}`} gradientUnits="userSpaceOnUse" x1={x1} y1={y1} x2={x2} y2={y2}>
+                  <stop offset="0" stopColor={colors[i]} />
+                  <stop offset="1" stopColor={colors[(i + 1) % count]} />
+                </linearGradient>
+              );
             })}
-            <polygon points={ring(WHEEL.minRadius)} fill={`rgb(${CENTER_GRAY})`} fillOpacity={0.35} strokeOpacity={0.5} />
-            <polygon points={ring(levelRadius(0, min, max))} strokeOpacity={0.5} />
-          </g>
-          <polygon points={shape} fill="none" stroke="white" strokeWidth={2} strokeLinejoin="round" />
-          {hues.map((h, i) => (
-            <polygon key={h.hue} points={outlineSide(i, count)} fill={`url(#${id}-side-${i})`} />
-          ))}
-          <g style={{ filter: "drop-shadow(0 1px 2px rgb(0 0 0 / 0.5))" }}>
+          </defs>
+          <g transform={`translate(${c} ${c})`}>
+            {/* Dim the wheel outside the hues' shape and light it inside. */}
+            <path d={`M${outline}Z M${shape}Z`} fill="black" fillOpacity={0.5} fillRule="evenodd" />
+            <polygon points={shape} fill="white" fillOpacity={0.38} />
+            {/* The grid: spokes, the minimum ring around the gray middle, and the ring at 0. */}
+            <g stroke="white" strokeWidth={1} fill="none">
+              {hues.map((h, i) => {
+                const [x1, y1] = at(WHEEL.minRadius, i);
+                const [x2, y2] = at(WHEEL.outline, i);
+                return <line key={h.hue} x1={x1} y1={y1} x2={x2} y2={y2} strokeOpacity={0.14} />;
+              })}
+              <polygon points={ring(WHEEL.minRadius)} fill={`rgb(${CENTER_GRAY})`} fillOpacity={0.35} strokeOpacity={0.5} />
+              <polygon points={ring(levelRadius(0, min, max))} strokeOpacity={0.5} />
+            </g>
+            <polygon points={shape} fill="none" stroke="white" strokeWidth={2} strokeLinejoin="round" />
             {hues.map((h, i) => (
-              <circle
-                key={h.hue}
-                cx={dots[i][0]}
-                cy={dots[i][1]}
-                r={WHEEL.dot}
-                fill={colors[i]}
-                stroke="white"
-                strokeOpacity={0.85}
-                strokeWidth={1.25}
-              >
-                <title>{`${h.hue}: ${fmt.signed(h.value)}`}</title>
-              </circle>
+              <polygon key={h.hue} points={outlineSide(i, count)} fill={`url(#${id}-side-${i})`} />
             ))}
+            <g style={{ filter: "drop-shadow(0 1px 2px rgb(0 0 0 / 0.5))" }}>
+              {hues.map((h, i) => (
+                <circle
+                  key={h.hue}
+                  cx={dots[i][0]}
+                  cy={dots[i][1]}
+                  r={WHEEL.dot}
+                  fill={colors[i]}
+                  stroke="white"
+                  strokeOpacity={0.85}
+                  strokeWidth={1.25}
+                >
+                  <title>{`${h.hue}: ${fmt.signed(h.value)}`}</title>
+                </circle>
+              ))}
+            </g>
+            {hues.map((h, i) => {
+              const [x, y] = at(WHEEL.label, i);
+              return (
+                <text
+                  key={h.hue}
+                  x={x}
+                  y={y}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fontSize={17}
+                  fontWeight={600}
+                  fill="white"
+                >
+                  {fmt.signed(h.value)}
+                </text>
+              );
+            })}
           </g>
-          {hues.map((h, i) => {
-            const [x, y] = at(WHEEL.label, i);
-            return (
-              <text
-                key={h.hue}
-                x={x}
-                y={y}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fontSize={17}
-                fontWeight={600}
-                fill="white"
-              >
-                {fmt.signed(h.value)}
-              </text>
-            );
-          })}
-        </g>
-      </svg>
+        </svg>
+      </div>
       <ul className="sr-only">
         {hues.map((h) => (
           <li key={h.hue}>
