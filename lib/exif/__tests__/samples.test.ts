@@ -2,8 +2,7 @@
  * Cross-checks the parser against exiftool on real photos in `samples/` (gitignored).
  * Skipped when exiftool isn't installed or there are no samples.
  */
-import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -13,46 +12,14 @@ import {
   type PhotoMetadata,
   type ReadResult,
 } from "@/lib/exif";
-
-const SAMPLES_DIR = path.resolve(process.cwd(), "samples");
-
-const sampleFiles = existsSync(SAMPLES_DIR)
-  ? readdirSync(SAMPLES_DIR)
-      .filter((f) => /\.jpe?g$/i.test(f))
-      .sort()
-  : [];
-const hasExiftool = spawnSync("exiftool", ["-ver"]).status === 0;
-
-interface ExiftoolTag {
-  id: number;
-  val: unknown;
-}
-type ExiftoolRecord = Record<string, unknown>;
-
-/** One exiftool run for all samples: JSON, numeric values (-n), tag IDs (-D), group-1 prefixes. */
-function runExiftool(files: string[]): Map<string, ExiftoolRecord> {
-  const json = execFileSync(
-    "exiftool",
-    ["-q", "-j", "-a", "-u", "-n", "-D", "-G1", "-EXIF:all", "-MakerNotes:all", ...files],
-    { cwd: SAMPLES_DIR, maxBuffer: 64 * 1024 * 1024 },
-  ).toString();
-  const records = JSON.parse(json) as ExiftoolRecord[];
-  return new Map(records.map((r) => [String(r.SourceFile), r]));
-}
-
-/** Tags of one maker-note sub-IFD, sliced out of exiftool's (file-ordered) JSON by its Version tag. */
-function exiftoolSection(record: ExiftoolRecord, versionKey: string): ExiftoolTag[] {
-  const out: ExiftoolTag[] = [];
-  let inside = false;
-  for (const [key, value] of Object.entries(record)) {
-    if (typeof value !== "object" || value === null || !("id" in value)) continue;
-    const tag = value as ExiftoolTag;
-    if (key === versionKey) inside = true;
-    else if (inside && tag.id === 0 && key.endsWith("Version")) break;
-    if (inside) out.push(tag);
-  }
-  return out;
-}
+import {
+  exiftoolSection,
+  runExiftool,
+  SAMPLES_DIR,
+  sampleFiles,
+  samplesRunnable,
+  type ExiftoolTag,
+} from "@/lib/test-utils/samples";
 
 /** Our entry as exiftool -n would print it, one token per value. */
 function tokens(entry: IfdEntry): string[] {
@@ -95,10 +62,9 @@ function expectSameValue(entry: IfdEntry, expected: unknown, label: string) {
 
 const hex = (id: number) => `0x${id.toString(16).padStart(4, "0")}`;
 
-const runnable = hasExiftool && sampleFiles.length > 0;
-
-describe.skipIf(!runnable)("samples match exiftool", () => {
-  const exiftool = runnable ? runExiftool(sampleFiles) : new Map<string, ExiftoolRecord>();
+describe.skipIf(!samplesRunnable)("samples match exiftool", () => {
+  // JSON, numeric values (-n), tag IDs (-D), group-1 prefixes.
+  const exiftool = runExiftool(["-a", "-u", "-n", "-D", "-G1", "-EXIF:all", "-MakerNotes:all"]);
 
   describe.each(sampleFiles)("%s", (file) => {
     const record = exiftool.get(file)!;

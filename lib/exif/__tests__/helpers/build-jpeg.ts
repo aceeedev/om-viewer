@@ -200,6 +200,8 @@ export const sampleCameraSettings: Field[] = [
   { tag: 0x050f, type: "s16", value: [0, -1, 1, 0] },
   { tag: 0x0520, type: "u16", value: [9, 2] },
   { tag: 0x0521, type: "s16", value: [0, -2, 2] },
+  { tag: 0x0523, type: "s16", value: [-2, -2, 2] },
+  { tag: 0x0524, type: "s16", value: [-1, -2, 2] },
   {
     tag: 0x052e,
     type: "s16",
