@@ -20,7 +20,7 @@ export function PanelRow({ notes = [], children }: { notes?: UnverifiedNote[]; c
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-start gap-6">{children}</div>
       {notes.map((n) => (
-        <p key={n.label} className="text-xs text-amber-700 dark:text-amber-400">
+        <p key={n.label} className="text-xs text-amber-700">
           * {n.label} is unverified: {n.why}
         </p>
       ))}

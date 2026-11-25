@@ -31,6 +31,8 @@ describe("format", () => {
     expect(fmt.rangeText(0, 3)).toBe("0 to 3");
     expect(fmt.rangedValue(2, 0)).toBe("2");
     expect(fmt.rangedValue(2, -2)).toBe("+2");
+    expect(fmt.rangedValue(0, -2)).toBe("±0");
+    expect(fmt.rangedValue(0, 0)).toBe("0");
   });
 
   it("formats exposure values", () => {
@@ -41,7 +43,7 @@ describe("format", () => {
     expect(fmt.aperture(4)).toBe("f/4");
     expect(fmt.aperture(5.6)).toBe("f/5.6");
     expect(fmt.focalLength(20)).toBe("20 mm");
-    expect(fmt.exposureCompensation(0)).toBe("0 EV");
+    expect(fmt.exposureCompensation(0)).toBe("±0.0 EV");
     expect(fmt.exposureCompensation(-0.7)).toBe("−0.7 EV");
     expect(fmt.exposureCompensation(1 / 3)).toBe("+0.3 EV");
   });

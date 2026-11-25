@@ -45,9 +45,9 @@ export function rangeText(min: number, max: number): string {
   return `${f(min)} to ${f(max)}`;
 }
 
-/** A value on its range: signed when the range goes negative. */
+/** A value on its range: as the camera prints a level ("+2", "±0", "−1") when the range goes negative. */
 export function rangedValue(value: number, min: number): string {
-  return min >= 0 ? String(value) : signed(value);
+  return min >= 0 ? String(value) : level(value);
 }
 
 /** "1/250 s", "0.3 s", "2 s". */
@@ -68,10 +68,9 @@ export function focalLength(mm: number): string {
   return `${round(mm, 1)} mm`;
 }
 
-/** "0 EV", "+0.3 EV", "−0.7 EV". */
+/** "±0.0 EV", "+0.3 EV", "−0.7 EV": the camera's way (evLevel) with the unit. */
 export function exposureCompensation(ev: number): string {
-  const r = round(ev, 1);
-  return `${r === 0 ? "0" : signed(r)} EV`;
+  return `${evLevel(ev)} EV`;
 }
 
 /** EXIF "2026:10:23 13:57:06" + "-08:00" → "2026-10-23 13:57:06 (UTC−08:00)". */
