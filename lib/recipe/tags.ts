@@ -7,7 +7,7 @@
 export const CameraSettingsTag = {
   WhiteBalance2: 0x0500,
   WhiteBalanceTemperature: 0x0501,
-  WhiteBalanceBracket: 0x0502,
+  WhiteBalanceFineTune: 0x0502,
   CustomSaturation: 0x0503,
   ModifiedSaturation: 0x0504,
   ContrastSetting: 0x0505,

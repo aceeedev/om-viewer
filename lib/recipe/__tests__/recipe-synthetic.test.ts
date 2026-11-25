@@ -123,13 +123,30 @@ describe("buildRecipe on synthetic maker notes", () => {
     expect(recipe.whiteBalance).toEqual({
       mode: { id: 512, label: "Custom WB 1" },
       temperature: 5800,
-      bracket: { values: [2, 2], unverified: UNVERIFIED.whiteBalanceBracket },
+      fineTune: { amber: { value: 2, min: -7, max: 7 }, green: { value: 2, min: -7, max: 7 } },
     });
+    expect(recipe.whiteBalance.keepWarmColor).toBeUndefined(); // only Auto has the option
     expect(recipe.processing).toMatchObject({
       noiseFilter: { label: "Low" },
       noiseReduction: ["Noise Reduction", "Noise Filter"],
       gradation: { value: 0, min: -1, max: 1, label: "Normal", selection: "User-Selected" },
     });
+  });
+
+  it("reads Keep Warm Color from the Auto white balance mode", () => {
+    const wb = (id: number) => recipeFor(withSettings([{ tag: 0x0500, type: "u16", value: [id] }])).whiteBalance;
+    expect(wb(0)).toMatchObject({ mode: { label: "Auto" }, keepWarmColor: true });
+    expect(wb(1)).toMatchObject({ mode: { label: "Auto (Keep Warm Color Off)" }, keepWarmColor: false });
+  });
+
+  it("reads the white balance fine-tune as [amber, green], each signed", () => {
+    const fineTune = (value: number[]) =>
+      recipeFor(withSettings([{ tag: 0x0502, type: "s16", value }])).whiteBalance.fineTune;
+    // The OM-3 frames from exiftool/exiftool#462: B+1 M+2 and A+4 G+2.
+    expect(fineTune([-1, -2])).toMatchObject({ amber: { value: -1 }, green: { value: -2 } });
+    expect(fineTune([4, 2])).toMatchObject({ amber: { value: 4 }, green: { value: 2 } });
+    // Older bodies write one value of unknown meaning: not read as a fine-tune.
+    expect(fineTune([3])).toBeUndefined();
   });
 
   it("treats a 0 K white balance temperature as auto", () => {

@@ -6,6 +6,24 @@ describe("format", () => {
     expect(fmt.signed(4)).toBe("+4");
     expect(fmt.signed(0)).toBe("0");
     expect(fmt.signed(-2)).toBe("−2");
+    expect(fmt.level(4)).toBe("+4");
+    expect(fmt.level(0)).toBe("±0");
+    expect(fmt.level(-4)).toBe("−4");
+  });
+
+  it("prints exposure compensation to one decimal, as the camera does", () => {
+    expect(fmt.evLevel(0.3333)).toBe("+0.3");
+    expect(fmt.evLevel(-2 / 3)).toBe("−0.7");
+    expect(fmt.evLevel(-1)).toBe("−1.0");
+    expect(fmt.evLevel(0)).toBe("±0.0");
+    expect(fmt.evLevel(-0.01)).toBe("±0.0"); // rounds to zero: no sign
+  });
+
+  it("prints compact labels without a plus sign", () => {
+    expect(fmt.plain(4)).toBe("4");
+    expect(fmt.plain(0)).toBe("0");
+    expect(fmt.plain(-0)).toBe("0");
+    expect(fmt.plain(-1)).toBe("−1");
   });
 
   it("formats ranges, dropping signs for non-negative ones", () => {
@@ -33,5 +51,13 @@ describe("format", () => {
     expect(fmt.dateTime("2026:01:02 03:04:05", "+09:00")).toBe("2026-01-02 03:04:05 (UTC+09:00)");
     expect(fmt.dateTime("2026:01:02 03:04:05")).toBe("2026-01-02 03:04:05");
     expect(fmt.dateTime("garbage")).toBe("garbage");
+  });
+
+  it("names a white balance fine-tune by the direction of each shift", () => {
+    expect(fmt.fineTune(4, 0)).toBe("A4.G0");
+    expect(fmt.fineTune(2, -2)).toBe("A2.M2"); // as on the camera's screen
+    expect(fmt.fineTune(-3, -2)).toBe("B3.M2");
+    expect(fmt.fineTuneWords(4, 0)).toBe("amber 4, green 0");
+    expect(fmt.fineTuneWords(-3, -2)).toBe("blue 3, magenta 2");
   });
 });

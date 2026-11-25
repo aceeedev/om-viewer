@@ -196,6 +196,7 @@ const ascii = (s: string) => Uint8Array.from([...s].map((c) => c.charCodeAt(0)))
 export const sampleCameraSettings: Field[] = [
   { tag: 0x0000, type: "undefined", value: ascii("0100") },
   { tag: 0x0500, type: "u16", value: [0] },
+  { tag: 0x0502, type: "s16", value: [2, 2] },
   { tag: 0x050d, type: "rational", value: [[27, 10]] },
   { tag: 0x050f, type: "s16", value: [0, -1, 1, 0] },
   { tag: 0x0520, type: "u16", value: [9, 2] },

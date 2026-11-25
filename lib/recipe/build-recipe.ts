@@ -32,6 +32,7 @@ import type {
   Recipe,
   ToneLevels,
   WhiteBalance,
+  WhiteBalanceFineTune,
 } from "./types";
 
 const EQUIPMENT_CAMERA_TYPE = 0x0100;
@@ -39,13 +40,17 @@ const EQUIPMENT_LENS_MODEL = 0x0203;
 
 const SHADING_RANGE = { min: -5, max: 5 };
 
+/** White balance compensation goes up to 7 steps each way on both axes (OM System specs). */
+const WB_FINE_TUNE_RANGE = { min: -7, max: 7 };
+
+/** WhiteBalance2 IDs of Auto with Keep Warm Color on and off. */
+const WB_AUTO = 0;
+const WB_AUTO_KEEP_WARM_OFF = 1;
+
 export const UNVERIFIED = {
   colorProfileShading:
     "Assumed to be stored in the same tag as Monochrome Profile shading (0x053a); " +
     "not yet confirmed on a Color Profile shot with shading set.",
-  whiteBalanceBracket:
-    "ExifTool calls tag 0x0502 WhiteBalanceBracket; on OM System bodies it may be the " +
-    "white balance fine-tune instead. Not yet confirmed.",
 } as const;
 
 /** Turn parsed maker notes into labeled settings. Missing tags become undefined fields. */
@@ -212,12 +217,27 @@ function readGradation(cs: Ifd): Gradation | undefined {
 }
 
 function readWhiteBalance(cs: Ifd): WhiteBalance {
+  const mode = int(cs, Tag.WhiteBalance2);
   const temperature = int(cs, Tag.WhiteBalanceTemperature);
-  const bracket = ints(cs, Tag.WhiteBalanceBracket);
   return {
-    mode: choice(int(cs, Tag.WhiteBalance2), WHITE_BALANCE_MODES),
+    mode: choice(mode, WHITE_BALANCE_MODES),
+    keepWarmColor: mode === WB_AUTO ? true : mode === WB_AUTO_KEEP_WARM_OFF ? false : undefined,
     temperature: temperature ? temperature : undefined,
-    bracket: bracket ? { values: bracket, unverified: UNVERIFIED.whiteBalanceBracket } : undefined,
+    fineTune: readFineTune(ints(cs, Tag.WhiteBalanceFineTune)),
+  };
+}
+
+/**
+ * Tag 0x0502 holds two values on OM System bodies: [blue↔amber, magenta↔green]. This was
+ * confirmed on the OM-3 by shooting one known shift per frame (exiftool/exiftool#462), and
+ * ExifTool 13.60 reads it the same way. Older bodies write a single value of unknown meaning
+ * (ExifTool's "WhiteBalanceBracket"), which is left to the raw table.
+ */
+function readFineTune(values: number[] | undefined): WhiteBalanceFineTune | undefined {
+  if (values?.length !== 2) return undefined;
+  return {
+    amber: { value: values[0], ...WB_FINE_TUNE_RANGE },
+    green: { value: values[1], ...WB_FINE_TUNE_RANGE },
   };
 }
 

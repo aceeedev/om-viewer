@@ -2,7 +2,7 @@
  * Turns a Recipe into titled sections of display rows. Shared by the Simple and Full views so
  * both always describe a setting the same way. Pure functions, no React.
  */
-import type { Choice, Gradation, Profile, Ranged, Recipe, ToneLevels } from "@/lib/recipe";
+import type { Choice, Gradation, PictureMode, Profile, Ranged, Recipe, ToneLevels, WhiteBalance } from "@/lib/recipe";
 import * as fmt from "./format";
 
 export interface Row {
@@ -21,20 +21,23 @@ export interface Section {
   rows: Row[];
 }
 
-/** Approximate display colors for the 12 Color Profile Control hues. */
+/**
+ * Display colors for the 12 Color Profile Control hues. Our own palette, picked in OKLCH so the
+ * hues read as evenly bright as each name allows (yellow stays light, violet and blue deep).
+ */
 export const HUE_SWATCHES: Record<string, string> = {
-  Yellow: "#f2d21b",
-  Orange: "#f59e0b",
-  "Orange-red": "#f0642a",
-  Red: "#e0303a",
-  Magenta: "#d4338b",
-  Violet: "#8b5cf6",
-  Blue: "#3b6ff6",
-  "Blue-cyan": "#0ea5e9",
-  Cyan: "#06b6d4",
-  "Green-cyan": "#14b8a6",
-  Green: "#22c55e",
-  "Yellow-green": "#a3d635",
+  Yellow: "#fbe405", // oklch(0.91 0.19 102)
+  Orange: "#ffa839", // oklch(0.80 0.156 68)
+  "Orange-red": "#fa5f29", // oklch(0.68 0.20 38)
+  Red: "#eb3062", // oklch(0.62 0.22 12)
+  Magenta: "#d227b0", // oklch(0.60 0.24 338)
+  Violet: "#8e3de8", // oklch(0.56 0.24 300)
+  Blue: "#3a66ed", // oklch(0.56 0.21 266)
+  "Blue-cyan": "#339fee", // oklch(0.68 0.15 245)
+  Cyan: "#50d9ef", // oklch(0.82 0.12 210)
+  "Green-cyan": "#15e5b4", // oklch(0.82 0.16 170)
+  Green: "#59de65", // oklch(0.80 0.20 145)
+  "Yellow-green": "#baed3f", // oklch(0.88 0.20 125)
 };
 
 function ranged(label: string, r: Ranged | undefined): Row | undefined {
@@ -58,13 +61,38 @@ function gradation(g: Gradation | undefined): Row | undefined {
 
 const rows = (...items: (Row | undefined)[]): Row[] => items.filter((r): r is Row => r !== undefined);
 
-export interface ProfileSectionOptions {
-  /** Simple view: hide settings that have no effect in the current state (e.g. strength with no filter). */
-  simple?: boolean;
+/**
+ * The white balance mode as a name and its details, e.g. "Auto" with "Keep Warm Color On" (the
+ * Off mode's label already says so), "7500K" with "Fine Weather with Shade", or "Custom WB 1"
+ * with a temperature the label doesn't already give ("5800K").
+ */
+export function whiteBalanceMode(wb: WhiteBalance): { name: string; details: string[] } | undefined {
+  if (!wb.mode) return undefined;
+  const { label } = wb.mode;
+  // Labels carry their detail in parentheses: "7500K (Fine Weather with Shade)".
+  const m = /^(.*?) \((.*)\)$/.exec(label);
+  const name = m ? m[1] : label;
+  const details = m ? [m[2]] : [];
+  if (wb.keepWarmColor && label === "Auto") details.push("Keep Warm Color On");
+  if (wb.temperature && !label.includes(`${wb.temperature}K`)) details.push(`${wb.temperature}K`);
+  return { name, details };
+}
+
+/**
+ * Picture modes the PEN's manual names differently from ExifTool, whose names the recipe keeps so
+ * it can be checked against ExifTool's output.
+ */
+const MANUAL_MODE_NAMES: Record<number, string> = {
+  256: "Monochrome", // ExifTool's "Monotone"
+};
+
+/** The picture mode as the camera's manual names it: "Monochrome" where ExifTool says "Monotone". */
+export function pictureModeName(mode: PictureMode): string {
+  return MANUAL_MODE_NAMES[mode.id] ?? mode.label;
 }
 
 /** The controls the shot's picture mode lets you edit, grouped as on the camera. */
-export function profileSections(profile: Profile, options: ProfileSectionOptions = {}): Section[] {
+export function profileSections(profile: Profile): Section[] {
   const picture = (extra: (Row | undefined)[] = []): Section => ({
     title: "Picture settings",
     rows: rows(
@@ -91,14 +119,13 @@ export function profileSections(profile: Profile, options: ProfileSectionOptions
         },
         picture(),
       ];
-    case "monochromeProfile": {
-      const hasFilter = profile.filter !== undefined && profile.filter.id !== 0;
+    case "monochromeProfile":
       return [
         {
           title: "Monochrome Profile Control",
           rows: rows(
             choice("Color filter", profile.filter),
-            options.simple && !hasFilter ? undefined : ranged("Filter strength", profile.filterStrength),
+            ranged("Filter strength", profile.filterStrength),
             choice("Film grain", profile.filmGrain),
             ranged("Shading", profile.shading),
             choice("Toning", profile.toning),
@@ -106,7 +133,6 @@ export function profileSections(profile: Profile, options: ProfileSectionOptions
         },
         picture(),
       ];
-    }
     case "colorCreator":
       return [
         {
@@ -164,7 +190,7 @@ export function fullSections(recipe: Recipe): Section[] {
   const sections: Section[] = [
     {
       title: "Picture mode",
-      rows: [{ label: "Mode", value: profile.mode.label }],
+      rows: [{ label: "Mode", value: pictureModeName(profile.mode) }],
     },
     ...profileSections(profile),
     toneSection(recipe.tone),
@@ -172,10 +198,10 @@ export function fullSections(recipe: Recipe): Section[] {
       title: "White balance",
       rows: rows(
         choice("Mode", wb.mode),
+        wb.keepWarmColor === undefined ? undefined : { label: "Keep Warm Color", value: fmt.onOff(wb.keepWarmColor) },
         { label: "Color temperature", value: wb.temperature ? `${wb.temperature} K` : "Auto" },
-        wb.bracket
-          ? { label: "Tag 0x0502", value: wb.bracket.values.join(" "), unverified: wb.bracket.unverified }
-          : undefined,
+        ranged("Fine-tune, amber (+) / blue (−)", wb.fineTune?.amber),
+        ranged("Fine-tune, green (+) / magenta (−)", wb.fineTune?.green),
       ),
     },
     {

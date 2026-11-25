@@ -35,6 +35,9 @@ function parseToneLevel(text: string): ToneLevels {
   return tone;
 }
 
+/** Tag 0x0502: ExifTool 13.60 and later call it WhiteBalanceFineTune; earlier versions, WhiteBalanceBracket. */
+const FINE_TUNE_NAMES = ["WhiteBalanceFineTune", "WhiteBalanceBracket"];
+
 function expectedKind(label: string): Profile["kind"] {
   if (label.startsWith("Color Profile")) return "colorProfile";
   if (label.startsWith("Monochrome Profile")) return "monochromeProfile";
@@ -51,9 +54,11 @@ describe.skipIf(!samplesRunnable)("recipe matches exiftool labels", () => {
   describe.each(sampleFiles)("%s", (file) => {
     let recipe: Recipe;
     let section: ReturnType<typeof exiftoolSection>;
-    const printed = (name: string): string => {
-      const tag = section.find((t) => t.key === `Olympus:${name}`);
-      if (!tag) throw new Error(`exiftool reported no ${name}`);
+    const printed = (name: string): string => printedAny([name]);
+    /** The value of whichever of these tag names this exiftool version uses. */
+    const printedAny = (names: string[]): string => {
+      const tag = section.find((t) => names.some((name) => t.key === `Olympus:${name}`));
+      if (!tag) throw new Error(`exiftool reported none of ${names.join(", ")}`);
       return String(tag.val);
     };
 
@@ -135,7 +140,10 @@ describe.skipIf(!samplesRunnable)("recipe matches exiftool labels", () => {
       expect(wb.mode?.label).toBe(printed("WhiteBalance2"));
       const temperature = printed("WhiteBalanceTemperature");
       expect(wb.temperature).toBe(temperature === "Auto" ? undefined : Number(temperature));
-      expect(wb.bracket?.values.join(" ")).toBe(printed("WhiteBalanceBracket"));
+      const keepWarmColor: Record<string, boolean> = { Auto: true, "Auto (Keep Warm Color Off)": false };
+      expect(wb.keepWarmColor).toBe(keepWarmColor[printed("WhiteBalance2")]);
+      const fineTune = wb.fineTune && `${wb.fineTune.amber.value} ${wb.fineTune.green.value}`;
+      expect(fineTune).toBe(printedAny(FINE_TUNE_NAMES));
     });
 
     it("processing", () => {
@@ -160,6 +168,7 @@ describe.skipIf(!samplesRunnable)("recipe matches exiftool labels", () => {
         expect(ours, `raw entry for ${tag.key}`).toBeDefined();
         const theirName = tag.key.replace(/^Olympus:/, "");
         if (theirName.startsWith("Olympus_CameraSettings_")) expect(ours?.name, theirName).toBeUndefined();
+        else if (FINE_TUNE_NAMES.includes(theirName)) expect(ours?.name).toBe("WhiteBalanceFineTune");
         else expect(ours?.name, `name of ${ours?.id}`).toBe(theirName);
       }
     });

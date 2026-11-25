@@ -111,10 +111,22 @@ export type Profile =
 
 export interface WhiteBalance {
   mode?: Choice;
+  /**
+   * Auto white balance's Keep Warm Color option, which the mode records: "Auto" has it on,
+   * "Auto (Keep Warm Color Off)" has it off. Undefined for every other mode.
+   */
+  keepWarmColor?: boolean;
   /** Kelvin; undefined when the camera recorded 0 (auto). */
   temperature?: number;
-  /** Tag 0x0502 (ExifTool: WhiteBalanceBracket). Its meaning on OM System bodies is unconfirmed. */
-  bracket?: { values: number[]; unverified: string };
+  /** The white balance compensation, in steps along the camera's two axes. */
+  fineTune?: WhiteBalanceFineTune;
+}
+
+export interface WhiteBalanceFineTune {
+  /** Positive toward amber (A), negative toward blue (B). */
+  amber: Ranged;
+  /** Positive toward green (G), negative toward magenta (M). */
+  green: Ranged;
 }
 
 export interface Processing {

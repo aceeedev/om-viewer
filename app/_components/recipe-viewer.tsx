@@ -111,6 +111,8 @@ export function RecipeViewer() {
   const summary = exposureSummary(recipe);
 
   return (
+    // Wide screens: the photo and its details on the left, staying in view while the recipe on the
+    // right scrolls. Narrow screens: the photo on top, the recipe below.
     <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
       <div className="flex flex-col gap-4 lg:sticky lg:top-8 lg:self-start">
         {/* A local blob: URL, so next/image's optimizer has nothing to do here. */}
@@ -120,16 +122,15 @@ export function RecipeViewer() {
           alt={`Preview of ${fileName}`}
           className="max-h-[70vh] w-full rounded-lg bg-zinc-100 object-contain dark:bg-zinc-900"
         />
-        <DropZone onFile={openFile} dragging={dragging} compact />
-      </div>
-
-      <div className="flex flex-col gap-6">
         <header className="flex flex-col gap-1">
           <p className="break-all font-mono text-sm text-zinc-500 dark:text-zinc-400">{fileName}</p>
           {cameraLine && <p className="font-medium">{cameraLine}</p>}
           {summary && <p className="text-sm text-zinc-600 dark:text-zinc-400">{summary}</p>}
         </header>
+        <DropZone onFile={openFile} dragging={dragging} compact />
+      </div>
 
+      <div className="flex min-w-0 flex-col gap-6">
         <div role="group" aria-label="View" className="inline-flex self-start rounded-lg border border-zinc-300 p-0.5 dark:border-zinc-700">
           <ViewButton current={view} value="simple" onSelect={setView}>
             Simple
