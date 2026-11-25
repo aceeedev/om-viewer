@@ -2,18 +2,25 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Recipe } from "@/lib/recipe";
+import { randomSample, samplePath, type SamplePhoto } from "@/lib/sample-photos";
 import { DropZone } from "./drop-zone";
 import { FullView } from "./full-view";
 import { loadPhotoFile, loadPhotoUrl, type LoadResult } from "./load-photo";
+import { SampleCredit, SampleSourceNote, TrySampleButton } from "./samples";
 import { exposureSummary } from "./sections";
 import { SimpleView } from "./simple-view";
 
-/** `url` is set when the photo came from a pasted link, so the link field can show it again. */
+/** Where a photo came from, besides a file: a pasted link (shown again in the link field) or a sample. */
+interface Origin {
+  url?: string;
+  sample?: SamplePhoto;
+}
+
 type ViewerState =
   | { status: "idle" }
-  | { status: "reading"; fileName: string; url?: string }
-  | { status: "error"; fileName: string; message: string; url?: string }
-  | { status: "ready"; fileName: string; recipe: Recipe; previewUrl: string };
+  | ({ status: "reading"; fileName: string } & Origin)
+  | ({ status: "error"; fileName: string; message: string } & Origin)
+  | ({ status: "ready"; fileName: string; recipe: Recipe; previewUrl: string } & Origin);
 
 type View = "simple" | "full";
 
@@ -36,17 +43,23 @@ export function RecipeViewer() {
   }, [previewUrl]);
 
   const open = useCallback(
-    async (label: string, load: (signal: AbortSignal) => Promise<LoadResult>, url?: string) => {
+    async (label: string, load: (signal: AbortSignal) => Promise<LoadResult>, origin: Origin = {}) => {
       inFlight.current?.abort(); // stops a link that's still downloading
       const controller = new AbortController();
       inFlight.current = controller;
-      setState({ status: "reading", fileName: label, url });
+      setState({ status: "reading", fileName: label, ...origin });
       const result = await load(controller.signal);
       if (controller.signal.aborted) return; // a newer photo was opened meanwhile, or the viewer unmounted
       setState(
         result.ok
-          ? { status: "ready", fileName: result.fileName, recipe: result.recipe, previewUrl: URL.createObjectURL(result.file) }
-          : { status: "error", fileName: result.fileName, message: result.message, url },
+          ? {
+              status: "ready",
+              fileName: result.fileName,
+              recipe: result.recipe,
+              previewUrl: URL.createObjectURL(result.file),
+              ...origin,
+            }
+          : { status: "error", fileName: result.fileName, message: result.message, ...origin },
       );
     },
     [],
@@ -54,9 +67,24 @@ export function RecipeViewer() {
 
   const openFile = useCallback((file: File) => open(file.name, () => loadPhotoFile(file)), [open]);
   const openUrl = useCallback(
-    (url: string) => open(url.trim(), (signal) => loadPhotoUrl(url, signal), url.trim()),
+    (url: string) => open(url.trim(), (signal) => loadPhotoUrl(url, signal), { url: url.trim() }),
     [open],
   );
+
+  // A sample is fetched like a pasted link, from this site's own /samples/ folder.
+  const currentSample = state.status === "idle" ? undefined : state.sample?.name;
+  const openSample = useCallback(() => {
+    const sample = randomSample(currentSample);
+    const url = new URL(samplePath(sample), window.location.href).href;
+    return open(
+      sample.name,
+      async (signal) => {
+        const result = await loadPhotoUrl(url, signal);
+        return result.ok ? result : { ...result, fileName: sample.name };
+      },
+      { sample },
+    );
+  }, [open, currentSample]);
 
   useEffect(() => () => inFlight.current?.abort(), []);
 
@@ -118,11 +146,18 @@ export function RecipeViewer() {
             <span className="font-medium wrap-anywhere">{state.fileName}:</span> {state.message}
           </p>
         )}
+        <div className="flex flex-col items-center gap-3 pt-4 text-center">
+          <div className="flex flex-col items-center gap-x-4 gap-y-2 sm:flex-row">
+            <span className="text-sm text-zinc-600">No OM System photo at hand?</span>
+            <TrySampleButton onTry={openSample} busy={state.status === "reading"} />
+          </div>
+          <SampleSourceNote />
+        </div>
       </div>
     );
   }
 
-  const { recipe, fileName } = state;
+  const { recipe, fileName, sample } = state;
   const cameraLine = [recipe.camera.model, recipe.lens.model].filter(Boolean).join(" · ");
   const summary = exposureSummary(recipe);
 
@@ -135,13 +170,18 @@ export function RecipeViewer() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={state.previewUrl}
-          alt={`Preview of ${fileName}`}
+          alt={sample ? `Sample photo “${sample.title}” by ${sample.artist}` : `Preview of ${fileName}`}
           className="max-h-[70vh] w-full rounded-md bg-zinc-100 object-contain"
         />
         <header className="flex flex-col gap-1">
           <p className="break-all font-mono text-sm text-zinc-500">{fileName}</p>
           {cameraLine && <p className="font-medium">{cameraLine}</p>}
           {summary && <p className="text-sm text-zinc-600">{summary}</p>}
+          {sample && (
+            <div className="pt-1">
+              <SampleCredit photo={sample} />
+            </div>
+          )}
         </header>
         <DropZone onFile={openFile} onUrl={openUrl} dragging={dragging} compact />
       </div>

@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { entryNumber, entryText, parseJpeg } from "@/lib/exif";
 import { buildRecipe } from "@/lib/recipe";
-import { SAMPLE_MAX_EDGE, SAMPLE_PHOTOS, SAMPLE_SOURCE_PAGE, samplePath } from "../sample-photos";
+import { randomSample, SAMPLE_MAX_EDGE, SAMPLE_PHOTOS, SAMPLE_SOURCE_PAGE, samplePath } from "../sample-photos";
 
 const PUBLIC_DIR = path.join(import.meta.dirname, "..", "..", "public");
 const MAX_BYTES = 1024 * 1024;
@@ -73,5 +73,27 @@ describe.each(SAMPLE_PHOTOS.map((photo) => [photo.name, photo] as const))("%s", 
     for (const [name, tag] of Object.entries(EXIF_SERIALS)) expect(exifIfd.has(tag), name).toBe(false);
     const text = new TextDecoder("latin1").decode(bytes);
     expect(text).not.toMatch(/aux:(Lens)?SerialNumber/); // XMP
+  });
+});
+
+describe("randomSample", () => {
+  /** A fake Math.random that returns these values in turn. */
+  const sequence = (...values: number[]) => () => values.shift() ?? 0;
+
+  it("can pick every sample, from either end of the random range", () => {
+    const picked = new Set<string>();
+    const n = SAMPLE_PHOTOS.length;
+    for (let i = 0; i < n; i++) picked.add(randomSample(undefined, sequence(i / n)).name);
+    expect(picked.size).toBe(n);
+    expect(randomSample(undefined, sequence(0.999999999)).name).toBe(SAMPLE_PHOTOS[n - 1].name);
+  });
+
+  it("never picks the sample that's already open", () => {
+    const open = SAMPLE_PHOTOS[0].name;
+    for (let i = 0; i < 50; i++) expect(randomSample(open, sequence(i / 50)).name).not.toBe(open);
+  });
+
+  it("ignores a name that isn't a sample", () => {
+    expect(randomSample("P1010042.JPG", sequence(0)).name).toBe(SAMPLE_PHOTOS[0].name);
   });
 });

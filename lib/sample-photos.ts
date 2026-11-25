@@ -75,3 +75,13 @@ export const SAMPLE_PHOTOS: readonly SamplePhoto[] = [
 export function samplePath(photo: SamplePhoto): string {
   return `/samples/${photo.name}`;
 }
+
+/**
+ * A random sample, never the one named `exclude` (the one already open) while there are others.
+ * `random` returns a number in [0, 1), like Math.random.
+ */
+export function randomSample(exclude?: string, random: () => number = Math.random): SamplePhoto {
+  const others = SAMPLE_PHOTOS.filter((photo) => photo.name !== exclude);
+  const pool = others.length > 0 ? others : SAMPLE_PHOTOS;
+  return pool[Math.min(pool.length - 1, Math.floor(random() * pool.length))];
+}
