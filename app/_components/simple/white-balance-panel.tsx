@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { WhiteBalance, WhiteBalanceFineTune } from "@/lib/recipe";
 import * as fmt from "../format";
 import { HUE_SWATCHES, whiteBalanceMode } from "../sections";
@@ -6,14 +6,8 @@ import { PanelColumn, SCREEN } from "./panel-column";
 import { SettingsScreen } from "./slider";
 import { BOX_CENTER, WB_SCREEN, cursorPosition } from "./white-balance-grid";
 
-/** Each direction's color, from the hue palette; the box's corners blend the two beside them. */
+/** Each edge of the box in its direction's color, from the hue palette. */
 const AXIS = { green: HUE_SWATCHES.Green, amber: HUE_SWATCHES.Orange, magenta: HUE_SWATCHES.Magenta, blue: HUE_SWATCHES.Blue };
-const CORNER = {
-  topLeft: HUE_SWATCHES.Cyan,
-  topRight: HUE_SWATCHES.Yellow,
-  bottomRight: HUE_SWATCHES.Red,
-  bottomLeft: HUE_SWATCHES.Violet,
-};
 const BOX_FILL = "#16161a";
 
 /**
@@ -61,12 +55,11 @@ function WhiteBalanceScreen({ wb }: { wb: WhiteBalance }) {
 }
 
 /**
- * The fine-tune box: lettered tabs around it (G above, B left, A right, M below), its edges
- * running around the color wheel, and a "+" cursor where the shift lands, with crosshair lines
- * through it. The tabs toward the shift light up.
+ * The fine-tune box: lettered tabs around it (G above, B left, A right, M below), each edge a solid
+ * band of its direction's color, and a "+" cursor where the shift lands, with crosshair lines
+ * through it. As on the camera, the tabs toward the shift are white and the others greyed out.
  */
 function FineTuneBox({ fineTune }: { fineTune: WhiteBalanceFineTune }) {
-  const id = useId().replace(/[^\w-]/g, "");
   const { width, height, box, tab } = WB_SCREEN;
   const [x, y] = cursorPosition(fineTune);
   const [cx, cy] = BOX_CENTER;
@@ -79,39 +72,21 @@ function FineTuneBox({ fineTune }: { fineTune: WhiteBalanceFineTune }) {
   const green = fineTune.green.value;
 
   const tabs = [
-    { letter: "G", color: AXIS.green, lit: green > 0, x: cx - tab.long / 2, y: y0 - tab.gap - tab.short, w: tab.long, h: tab.short },
-    { letter: "M", color: AXIS.magenta, lit: green < 0, x: cx - tab.long / 2, y: y1 + tab.gap, w: tab.long, h: tab.short },
-    { letter: "B", color: AXIS.blue, lit: amber < 0, x: x0 - tab.gap - tab.side.short, y: cy - tab.side.long / 2, w: tab.side.short, h: tab.side.long },
-    { letter: "A", color: AXIS.amber, lit: amber > 0, x: x1 + tab.gap, y: cy - tab.side.long / 2, w: tab.side.short, h: tab.side.long },
+    { letter: "G", lit: green > 0, x: cx - tab.long / 2, y: y0 - tab.gap - tab.short, w: tab.long, h: tab.short },
+    { letter: "M", lit: green < 0, x: cx - tab.long / 2, y: y1 + tab.gap, w: tab.long, h: tab.short },
+    { letter: "B", lit: amber < 0, x: x0 - tab.gap - tab.side.short, y: cy - tab.side.long / 2, w: tab.side.short, h: tab.side.long },
+    { letter: "A", lit: amber > 0, x: x1 + tab.gap, y: cy - tab.side.long / 2, w: tab.side.short, h: tab.side.long },
   ];
-  // Each edge as a trapezoid (so the corners meet cleanly), shaded from corner to corner through
-  // its direction's color.
+  // Each edge as a trapezoid, so the corners meet cleanly.
   const edges = [
-    { name: "top", points: [[x0, y0], [x1, y0], [x1 - e, y0 + e], [x0 + e, y0 + e]], from: [x0, y0], to: [x1, y0], stops: [CORNER.topLeft, AXIS.green, CORNER.topRight] },
-    { name: "right", points: [[x1, y0], [x1, y1], [x1 - e, y1 - e], [x1 - e, y0 + e]], from: [x1, y0], to: [x1, y1], stops: [CORNER.topRight, AXIS.amber, CORNER.bottomRight] },
-    { name: "bottom", points: [[x1, y1], [x0, y1], [x0 + e, y1 - e], [x1 - e, y1 - e]], from: [x0, y1], to: [x1, y1], stops: [CORNER.bottomLeft, AXIS.magenta, CORNER.bottomRight] },
-    { name: "left", points: [[x0, y1], [x0, y0], [x0 + e, y0 + e], [x0 + e, y1 - e]], from: [x0, y0], to: [x0, y1], stops: [CORNER.topLeft, AXIS.blue, CORNER.bottomLeft] },
+    { name: "top", color: AXIS.green, points: [[x0, y0], [x1, y0], [x1 - e, y0 + e], [x0 + e, y0 + e]] },
+    { name: "right", color: AXIS.amber, points: [[x1, y0], [x1, y1], [x1 - e, y1 - e], [x1 - e, y0 + e]] },
+    { name: "bottom", color: AXIS.magenta, points: [[x1, y1], [x0, y1], [x0 + e, y1 - e], [x1 - e, y1 - e]] },
+    { name: "left", color: AXIS.blue, points: [[x0, y1], [x0, y0], [x0 + e, y0 + e], [x0 + e, y1 - e]] },
   ];
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} aria-hidden="true" className="block w-full">
-      <defs>
-        {edges.map((edge) => (
-          <linearGradient
-            key={edge.name}
-            id={`${id}-edge-${edge.name}`}
-            gradientUnits="userSpaceOnUse"
-            x1={edge.from[0]}
-            y1={edge.from[1]}
-            x2={edge.to[0]}
-            y2={edge.to[1]}
-          >
-            {edge.stops.map((color, i) => (
-              <stop key={i} offset={i / 2} stopColor={color} />
-            ))}
-          </linearGradient>
-        ))}
-      </defs>
       {tabs.map((t) => (
         <g key={t.letter}>
           <rect
@@ -120,10 +95,9 @@ function FineTuneBox({ fineTune }: { fineTune: WhiteBalanceFineTune }) {
             width={t.w - 1.5}
             height={t.h - 1.5}
             rx={5}
-            fill={t.lit ? t.color : "none"}
-            fillOpacity={0.14}
-            stroke={t.lit ? t.color : "white"}
-            strokeOpacity={t.lit ? 1 : 0.22}
+            fill="none"
+            stroke="white"
+            strokeOpacity={t.lit ? 1 : 0.3}
             strokeWidth={1.5}
           />
           <text
@@ -134,7 +108,7 @@ function FineTuneBox({ fineTune }: { fineTune: WhiteBalanceFineTune }) {
             fontSize={15}
             fontWeight={600}
             fill="white"
-            fillOpacity={t.lit ? 1 : 0.5}
+            fillOpacity={t.lit ? 1 : 0.4}
           >
             {t.letter}
           </text>
@@ -151,7 +125,7 @@ function FineTuneBox({ fineTune }: { fineTune: WhiteBalanceFineTune }) {
         <line x1={x0 + e} y1={y} x2={x1 - e} y2={y} />
       </g>
       {edges.map((edge) => (
-        <polygon key={edge.name} points={edge.points.map((p) => p.join(",")).join(" ")} fill={`url(#${id}-edge-${edge.name})`} />
+        <polygon key={edge.name} points={edge.points.map((p) => p.join(",")).join(" ")} fill={edge.color} />
       ))}
       <g stroke="white" strokeWidth={2} strokeLinecap="round" style={{ filter: "drop-shadow(0 0 2px rgb(0 0 0 / 0.6))" }}>
         <line x1={x - 7} y1={y} x2={x + 7} y2={y} />
