@@ -4,12 +4,18 @@ const WORDMARK = "font-extrabold font-stretch-expanded";
 /** One centered column, the same width in the header, the page and the footer. */
 export const CONTAINER = "mx-auto w-full max-w-6xl px-6";
 
-/** The black bar along the top, with the site's name. */
+/**
+ * The black bar along the top, with the site's name linking home. A plain link, not next/link:
+ * the site is one page, and a full load is what clears the viewer back to its empty state.
+ */
 export function SiteHeader() {
   return (
     <header className="bg-black text-white">
       <div className={`${CONTAINER} flex h-14 items-center`}>
-        <p className={`${WORDMARK} text-lg`}>OM Recipe Viewer</p>
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- a full load is the point: it resets the viewer */}
+        <a href="/" className={`${WORDMARK} text-lg`}>
+          OM Recipe Viewer
+        </a>
       </div>
     </header>
   );
