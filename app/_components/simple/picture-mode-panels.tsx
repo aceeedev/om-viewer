@@ -110,7 +110,7 @@ export function UnknownModePanel({ recipe }: { recipe: Recipe }) {
   const { mode } = recipe.profile;
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="text-sm text-zinc-600">
         This picture mode isn&apos;t recognized yet{mode.id >= 0 ? ` (ID ${mode.id})` : ""}. Switch to Full
         details to see every value the camera recorded.
       </p>

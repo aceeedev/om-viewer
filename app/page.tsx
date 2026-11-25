@@ -1,17 +1,24 @@
 import { RecipeViewer } from "./_components/recipe-viewer";
+import { CONTAINER } from "./_components/site-chrome";
 
 export default function Home() {
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-6 py-10">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-3xl font-semibold tracking-tight">OM Recipe Viewer</h1>
-        <p className="max-w-2xl text-zinc-600 dark:text-zinc-400">
-          See the picture settings an OM System camera used for a JPEG: Color Profile and Monochrome Profile
-          Control, picture mode, highlight &amp; shadow and white balance. Your photo is read in your browser and
-          never uploaded.
-        </p>
-      </header>
-      <RecipeViewer />
+    <main className="flex flex-1 flex-col">
+      {/* The intro: an off-white band with the headline centered, as on OM System's own pages. */}
+      <section className="border-b border-zinc-200 bg-zinc-50">
+        <div className={`${CONTAINER} flex flex-col items-center gap-4 py-12 text-center sm:py-16`}>
+          <h1 className="max-w-3xl text-3xl leading-[1.12] font-extrabold font-stretch-expanded text-balance sm:text-4xl">
+            See the recipe behind your photo
+          </h1>
+          <p className="max-w-2xl text-zinc-600">
+            See the picture settings an OM System camera used for a JPEG: Color Profile and Monochrome Profile
+            Control, picture mode, highlight &amp; shadow and white balance.
+          </p>
+        </div>
+      </section>
+      <div className={`${CONTAINER} py-10`}>
+        <RecipeViewer />
+      </div>
     </main>
   );
 }

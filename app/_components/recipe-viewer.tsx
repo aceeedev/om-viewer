@@ -97,7 +97,7 @@ export function RecipeViewer() {
         {state.status === "error" && (
           <p
             role="alert"
-            className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200"
+            className="rounded-md border-[1.5px] border-red-700 bg-red-50 px-4 py-3 text-sm text-red-800"
           >
             <span className="font-medium">{state.fileName}:</span> {state.message}
           </p>
@@ -120,18 +120,18 @@ export function RecipeViewer() {
         <img
           src={state.previewUrl}
           alt={`Preview of ${fileName}`}
-          className="max-h-[70vh] w-full rounded-lg bg-zinc-100 object-contain dark:bg-zinc-900"
+          className="max-h-[70vh] w-full rounded-md bg-zinc-100 object-contain"
         />
         <header className="flex flex-col gap-1">
-          <p className="break-all font-mono text-sm text-zinc-500 dark:text-zinc-400">{fileName}</p>
+          <p className="break-all font-mono text-sm text-zinc-500">{fileName}</p>
           {cameraLine && <p className="font-medium">{cameraLine}</p>}
-          {summary && <p className="text-sm text-zinc-600 dark:text-zinc-400">{summary}</p>}
+          {summary && <p className="text-sm text-zinc-600">{summary}</p>}
         </header>
         <DropZone onFile={openFile} dragging={dragging} compact />
       </div>
 
       <div className="flex min-w-0 flex-col gap-6">
-        <div role="group" aria-label="View" className="inline-flex self-start rounded-lg border border-zinc-300 p-0.5 dark:border-zinc-700">
+        <div role="group" aria-label="View" className="flex gap-8 border-b border-zinc-200">
           <ViewButton current={view} value="simple" onSelect={setView}>
             Simple
           </ViewButton>
@@ -164,10 +164,10 @@ function ViewButton({
       aria-pressed={active}
       onClick={() => onSelect(value)}
       className={
-        "rounded-md px-3 py-1.5 text-sm font-medium transition-colors " +
-        (active
-          ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-          : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100")
+        // Tabs, as on OM System's pages: bold names, a bar under the one that's showing.
+        "-mb-px border-b-[3px] pt-1 pb-2.5 font-bold transition-colors " +
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black " +
+        (active ? "border-black text-black" : "border-transparent text-zinc-500 hover:text-black")
       }
     >
       {children}

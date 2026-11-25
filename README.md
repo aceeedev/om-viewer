@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OM Recipe Viewer
 
-## Getting Started
+OM Recipe Viewer shows the picture settings, or "recipe", that an OM System camera used for a JPEG. Open a photo and see its Color Profile or Monochrome Profile Control, picture mode, highlight and shadow tone, and white balance.
 
-First, run the development server:
+The photo is read entirely in the browser. Nothing is uploaded.
+
+## Features
+
+- **Simple view.** The settings for the photo's picture mode, drawn in the style of the camera's own screens: the Color Profile hue wheel, the Monochrome filter wheel, the Color Creator ring, the tone curve, and the white balance fine-tune grid.
+- **Full details.** Every decoded setting in tables, with each value's range, plus exposure, camera and lens.
+- **Maker notes.** The raw values from the camera's maker-note block, as stored.
+- **Supported photos.** JPEGs from OM System cameras, and from Olympus cameras that use the same maker-note format.
+
+## Development
+
+Requires Node.js 20.9 or later and pnpm.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Command      | Description                          |
+| ------------ | ------------------------------------ |
+| `pnpm dev`   | Start the development server         |
+| `pnpm build` | Build for production                 |
+| `pnpm start` | Serve the production build           |
+| `pnpm lint`  | Run ESLint                           |
+| `pnpm test`  | Run the tests                        |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Some tests compare the parser's output with [ExifTool](https://exiftool.org) on real photos. To run them, install ExifTool and put JPEGs in a `samples/` folder at the project root. These tests are skipped otherwise. The folder is ignored by git, because photos carry camera and lens serial numbers.
 
-## Learn More
+## Built with
 
-To learn more about Next.js, take a look at the following resources:
+Next.js, React, TypeScript and Tailwind CSS. EXIF and maker-note parsing is written from scratch, with no image or metadata libraries.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Disclaimer
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This is an independent project, not affiliated with or endorsed by OM Digital Solutions. OM SYSTEM and PEN are trademarks of their owners.

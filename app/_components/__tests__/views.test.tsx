@@ -164,13 +164,16 @@ describe("SimpleView", () => {
       { tag: 0x0502, type: "s16", value: [-3, -1] },
     ]);
     expect(text(<SimpleView recipe={custom} />)).toContain("White balance Custom WB 1 (5800K) B3.M1");
-    // The tabs toward the shift light up in their color: B (blue) and M (magenta) here.
+    // The tabs toward the shift are white, B and M here; the others are greyed out.
     const html = renderToStaticMarkup(<SimpleView recipe={custom} />);
     const tab = (letter: string) => html.match(new RegExp(`<g><rect [^>]*></rect><text [^>]*>${letter}</text></g>`))![0];
-    expect(tab("B")).toContain('stroke="#3a66ed" stroke-opacity="1"');
-    expect(tab("M")).toContain('stroke="#d227b0" stroke-opacity="1"');
-    expect(tab("A")).toContain('stroke="white" stroke-opacity="0.22"');
-    expect(tab("G")).toContain('stroke="white" stroke-opacity="0.22"');
+    expect(tab("B")).toContain('fill="none" stroke="white" stroke-opacity="1"');
+    expect(tab("M")).toContain('fill="none" stroke="white" stroke-opacity="1"');
+    expect(tab("A")).toContain('fill="none" stroke="white" stroke-opacity="0.3"');
+    expect(tab("G")).toContain('fill="none" stroke="white" stroke-opacity="0.3"');
+    // Each edge of the box is one solid color, not a gradient.
+    expect(html).not.toContain("linearGradient");
+    for (const color of ["#3a66ed", "#d227b0"]) expect(html).toMatch(new RegExp(`<polygon points="[^"]*" fill="${color}"`));
   });
 
   it("leaves out the fine-tune box when the shot has no two-value fine-tune", () => {
@@ -178,7 +181,6 @@ describe("SimpleView", () => {
     const html = renderToStaticMarkup(<SimpleView recipe={recipe} />);
     expect(text(<SimpleView recipe={recipe} />)).toContain("White balance Auto (Keep Warm Color Off)");
     expect(html).not.toContain("fine-tune");
-    expect(html).not.toContain("-edge-");
     expect(html).not.toMatch(/>G</);
   });
 
@@ -195,9 +197,9 @@ describe("SimpleView", () => {
     expect(t).toContain("Picture mode Color Creator");
     // For screen readers, then across the top of the screen as on the tone screen.
     expect(t).toContain("Color Creator Hue * 12 (0 to 29) Saturation +2 (−4 to +3) Hue * 12 Saturation +2");
-    // 30 colored steps; step 12 is 144° clockwise, saturation +2 of −4..+3 is 6/7 of the way
+    // 30 colored steps (and the white balance box's 4 edges); step 12 is 144° clockwise, saturation +2 of −4..+3 is 6/7 of the way
     // from the inner ring (18.4) to just inside the outline (80): 71.2.
-    expect(html.match(/<polygon points="[^"]*" fill="#[0-9a-f]{6}"/g)).toHaveLength(30);
+    expect(html.match(/<polygon points="[^"]*" fill="#[0-9a-f]{6}"/g)).toHaveLength(34);
     expect(html).toContain('<line x1="0" y1="0" x2="41.85" y2="57.6"');
     expect(html).toContain('<circle cx="41.85" cy="57.6" r="5.5" fill="#9c39dd"'); // between Magenta and Violet
     expect(html).toContain("<title>Hue 12, saturation +2</title>");

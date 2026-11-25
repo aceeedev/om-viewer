@@ -12,8 +12,8 @@ export function SimpleView({ recipe }: { recipe: Recipe }) {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Picture mode</p>
-        <h2 className="text-2xl font-semibold">{pictureModeName(profile.mode)}</h2>
+        <p className="text-xs font-semibold font-stretch-expanded uppercase tracking-widest text-zinc-500">Picture mode</p>
+        <h2 className="text-2xl font-extrabold font-stretch-expanded">{pictureModeName(profile.mode)}</h2>
       </div>
       <ModePanels recipe={recipe} />
     </div>
