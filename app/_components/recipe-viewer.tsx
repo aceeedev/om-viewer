@@ -8,10 +8,11 @@ import { loadPhotoFile, loadPhotoUrl, type LoadResult } from "./load-photo";
 import { exposureSummary } from "./sections";
 import { SimpleView } from "./simple-view";
 
+/** `url` is set when the photo came from a pasted link, so the link field can show it again. */
 type ViewerState =
   | { status: "idle" }
-  | { status: "reading"; fileName: string }
-  | { status: "error"; fileName: string; message: string }
+  | { status: "reading"; fileName: string; url?: string }
+  | { status: "error"; fileName: string; message: string; url?: string }
   | { status: "ready"; fileName: string; recipe: Recipe; previewUrl: string };
 
 type View = "simple" | "full";
@@ -34,22 +35,28 @@ export function RecipeViewer() {
     return () => URL.revokeObjectURL(previewUrl);
   }, [previewUrl]);
 
-  const open = useCallback(async (label: string, load: (signal: AbortSignal) => Promise<LoadResult>) => {
-    inFlight.current?.abort(); // stops a link that's still downloading
-    const controller = new AbortController();
-    inFlight.current = controller;
-    setState({ status: "reading", fileName: label });
-    const result = await load(controller.signal);
-    if (controller.signal.aborted) return; // a newer photo was opened meanwhile, or the viewer unmounted
-    setState(
-      result.ok
-        ? { status: "ready", fileName: result.fileName, recipe: result.recipe, previewUrl: URL.createObjectURL(result.file) }
-        : { status: "error", fileName: result.fileName, message: result.message },
-    );
-  }, []);
+  const open = useCallback(
+    async (label: string, load: (signal: AbortSignal) => Promise<LoadResult>, url?: string) => {
+      inFlight.current?.abort(); // stops a link that's still downloading
+      const controller = new AbortController();
+      inFlight.current = controller;
+      setState({ status: "reading", fileName: label, url });
+      const result = await load(controller.signal);
+      if (controller.signal.aborted) return; // a newer photo was opened meanwhile, or the viewer unmounted
+      setState(
+        result.ok
+          ? { status: "ready", fileName: result.fileName, recipe: result.recipe, previewUrl: URL.createObjectURL(result.file) }
+          : { status: "error", fileName: result.fileName, message: result.message, url },
+      );
+    },
+    [],
+  );
 
   const openFile = useCallback((file: File) => open(file.name, () => loadPhotoFile(file)), [open]);
-  const openUrl = useCallback((url: string) => open(url.trim(), (signal) => loadPhotoUrl(url, signal)), [open]);
+  const openUrl = useCallback(
+    (url: string) => open(url.trim(), (signal) => loadPhotoUrl(url, signal), url.trim()),
+    [open],
+  );
 
   useEffect(() => () => inFlight.current?.abort(), []);
 
@@ -95,7 +102,13 @@ export function RecipeViewer() {
   if (state.status !== "ready") {
     return (
       <div className="flex flex-col gap-4">
-        <DropZone onFile={openFile} onUrl={openUrl} dragging={dragging} busy={state.status === "reading"} />
+        <DropZone
+          onFile={openFile}
+          onUrl={openUrl}
+          dragging={dragging}
+          busy={state.status === "reading"}
+          initialUrl={state.status === "idle" ? undefined : state.url}
+        />
         {state.status === "error" && (
           <p
             role="alert"
