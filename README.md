@@ -4,6 +4,8 @@ OM Recipe Viewer shows the picture settings, or "recipe", that an OM System came
 
 The photo is read entirely in the browser. Nothing is uploaded.
 
+**Try it at [omviewer.com](https://omviewer.com).**
+
 ## Features
 
 - **Simple view.** The settings for the photo's picture mode, drawn in the style of the camera's own screens: the Color Profile hue wheel, the Monochrome filter wheel, the Color Creator ring, the tone curve, and the white balance fine-tune grid.
@@ -35,6 +37,13 @@ Some tests compare the parser's output with [ExifTool](https://exiftool.org) on 
 ## Built with
 
 Next.js, React, TypeScript and Tailwind CSS. EXIF and maker-note parsing is written from scratch, with no image or metadata libraries.
+
+## License
+
+The code is released under the [MIT License](LICENSE). The license covers the code only, not these files:
+
+- **Sample photos** in `public/samples/`. They belong to the photographers credited on the site's [About page](https://omviewer.com/about) and in `lib/sample-photos.ts`, and are included to demonstrate the viewer. Reusing them needs their owners' permission.
+- **Archivo font files** in `assets/fonts/`, used to draw the social preview image. They're under the [SIL Open Font License](assets/fonts/OFL.txt).
 
 ## Disclaimer
 
