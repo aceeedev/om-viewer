@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SAMPLE_PHOTOS, SAMPLE_SOURCE_PAGE } from "@/lib/sample-photos";
 import { InfoPage, InfoSection } from "../_components/info-page";
-import { ExternalLink } from "../_components/text-link";
+import { ExternalLink, TEXT_LINK } from "../_components/text-link";
 
 export const metadata: Metadata = {
   title: "About",
@@ -30,7 +31,11 @@ export default function AboutPage() {
           setting it decoded, with the raw maker-note values underneath.
         </p>
         <p>
-          The photo is read in your browser. It isn&apos;t uploaded anywhere.
+          The photo is read in your browser. It isn&apos;t uploaded anywhere. See{" "}
+          <Link href="/privacy" className={TEXT_LINK}>
+            Privacy
+          </Link>{" "}
+          for details.
         </p>
       </InfoSection>
 
