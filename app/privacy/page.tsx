@@ -3,7 +3,7 @@ import { InfoPage, InfoSection } from "../_components/info-page";
 import { ExternalLink } from "../_components/text-link";
 
 export const metadata: Metadata = {
-  title: "Privacy",
+  title: "Privacy Policy",
   description:
     "Your photos are read in your browser and never uploaded. No accounts, cookies or analytics.",
 };
@@ -14,7 +14,7 @@ const VERCEL_PRIVACY_URL = "https://vercel.com/legal/privacy-notice";
 export default function PrivacyPage() {
   return (
     <InfoPage
-      title="Privacy"
+      title="Privacy Policy"
       intro="Your photos stay on your device. The site has no accounts, no cookies and no analytics."
       updated="November 25, 2026"
     >
@@ -70,7 +70,7 @@ export default function PrivacyPage() {
 
       <InfoSection title="Changes and questions">
         <p>
-          If this page changes, the date at the top will change with it. For questions, please{" "}
+          If this policy changes, the date at the top will change with it. For questions, please{" "}
           <ExternalLink href={REPO_ISSUES_URL}>open an issue on GitHub</ExternalLink>.
         </p>
       </InfoSection>

@@ -31,9 +31,9 @@ export default function AboutPage() {
           setting it decoded, with the raw maker-note values underneath.
         </p>
         <p>
-          The photo is read in your browser. It isn&apos;t uploaded anywhere. See{" "}
+          The photo is read in your browser. It isn&apos;t uploaded anywhere. See the{" "}
           <Link href="/privacy" className={TEXT_LINK}>
-            Privacy
+            Privacy Policy
           </Link>{" "}
           for details.
         </p>

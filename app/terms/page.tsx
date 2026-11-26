@@ -4,7 +4,7 @@ import { InfoPage, InfoSection } from "../_components/info-page";
 import { ExternalLink, TEXT_LINK } from "../_components/text-link";
 
 export const metadata: Metadata = {
-  title: "Terms",
+  title: "Terms and Conditions",
   description:
     "OM Recipe Viewer is free to use and provided as is. Trademarks and sample photos belong to their owners.",
 };
@@ -15,18 +15,18 @@ const REPO_ISSUES_URL = `${REPO_URL}/issues`;
 export default function TermsPage() {
   return (
     <InfoPage
-      title="Terms"
+      title="Terms and Conditions"
       intro="OM Recipe Viewer is free to use and provided as is. By using it, you agree to these terms."
       updated="November 25, 2026"
     >
       <InfoSection title="Using the site">
         <p>
           You can use the site for free, for any lawful purpose, without an account. How it handles your photos
-          is covered on the{" "}
+          is covered in the{" "}
           <Link href="/privacy" className={TEXT_LINK}>
-            Privacy
-          </Link>{" "}
-          page.
+            Privacy Policy
+          </Link>
+          .
         </p>
       </InfoSection>
 
