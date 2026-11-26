@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Geist_Mono } from "next/font/google";
+import { AUTHOR, SITE_DESCRIPTION, SITE_NAME, SITE_URL, TITLE_TEMPLATE } from "@/lib/site";
 import { SiteFooter, SiteHeader } from "./_components/site-chrome";
 import "./globals.css";
 
@@ -15,11 +16,17 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Defaults for every page. Each page adds its canonical URL and Open Graph tags with pageMetadata().
 export const metadata: Metadata = {
+  // Relative URLs in metadata (canonical, Open Graph) resolve against this.
+  metadataBase: new URL(SITE_URL),
   // The home page uses the default; other pages set a title and get "· OM Recipe Viewer" after it.
-  title: { default: "OM Recipe Viewer", template: "%s · OM Recipe Viewer" },
-  description:
-    "See the Color Profile, Monochrome Profile and picture settings stored in an OM System JPEG. Runs entirely in your browser.",
+  title: { default: SITE_NAME, template: TITLE_TEMPLATE },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  authors: [AUTHOR],
+  creator: AUTHOR.name,
+  twitter: { card: "summary_large_image" },
 };
 
 // The site is light only, so browsers draw form controls and scrollbars light too.

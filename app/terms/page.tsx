@@ -1,16 +1,14 @@
-import type { Metadata } from "next";
 import Link from "next/link";
+import { pageMetadata, REPO_ISSUES_URL, REPO_URL } from "@/lib/site";
 import { InfoPage, InfoSection } from "../_components/info-page";
 import { ExternalLink, TEXT_LINK } from "../_components/text-link";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
+  path: "/terms",
   title: "Terms and Conditions",
   description:
     "OM Recipe Viewer is free to use and provided as is. Trademarks and sample photos belong to their owners.",
-};
-
-const REPO_URL = "https://github.com/aceeedev/om-viewer";
-const REPO_ISSUES_URL = `${REPO_URL}/issues`;
+});
 
 export default function TermsPage() {
   return (

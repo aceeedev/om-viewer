@@ -1,5 +1,8 @@
+import { pageMetadata } from "@/lib/site";
 import { RecipeViewer } from "./_components/recipe-viewer";
 import { CONTAINER, PageIntro } from "./_components/site-chrome";
+
+export const metadata = pageMetadata({ path: "/" });
 
 export default function Home() {
   return (
