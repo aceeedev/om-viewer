@@ -16,7 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OM Recipe Viewer",
+  // The home page uses the default; other pages set a title and get "· OM Recipe Viewer" after it.
+  title: { default: "OM Recipe Viewer", template: "%s · OM Recipe Viewer" },
   description:
     "See the Color Profile, Monochrome Profile and picture settings stored in an OM System JPEG. Runs entirely in your browser.",
 };
