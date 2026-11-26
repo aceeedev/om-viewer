@@ -24,13 +24,16 @@ pnpm dev
 
 Then open http://localhost:3000.
 
-| Command      | Description                          |
-| ------------ | ------------------------------------ |
-| `pnpm dev`   | Start the development server         |
-| `pnpm build` | Build for production                 |
-| `pnpm start` | Serve the production build           |
-| `pnpm lint`  | Run ESLint                           |
-| `pnpm test`  | Run the tests                        |
+| Command          | Description                          |
+| ---------------- | ------------------------------------ |
+| `pnpm dev`       | Start the development server         |
+| `pnpm build`     | Build for production                 |
+| `pnpm start`     | Serve the production build           |
+| `pnpm lint`      | Run ESLint                           |
+| `pnpm typecheck` | Check types with TypeScript          |
+| `pnpm test`      | Run the tests                        |
+
+Every pull request and push to `main` runs lint, the type check, the tests and the build on GitHub Actions. Pull requests that only change `README.md`, `LICENSE` or `AGENTS.md` skip them.
 
 Some tests compare the parser's output with [ExifTool](https://exiftool.org) on real photos. To run them, install ExifTool and put JPEGs in a `samples/` folder at the project root. These tests are skipped otherwise. The folder is ignored by git, because photos carry camera and lens serial numbers.
 

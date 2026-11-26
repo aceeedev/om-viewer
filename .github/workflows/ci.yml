@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# The checks only read the code, so the job's token can't write to the repo.
+permissions:
+  contents: read
+
+# A new push to a pull request cancels that PR's run still in progress. Runs on main always finish.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # The job id is the check's name, which the main ruleset will require. Renaming it means
+  # updating the ruleset too.
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          # Also fetches the merge commit's parents, so the next step can see what the PR changes.
+          fetch-depth: 2
+
+      # A pull request that only changes these docs skips every step below. The job still passes,
+      # so the required check doesn't hold the PR up. (Skipping the whole workflow with
+      # paths-ignore would leave the required check waiting forever.) Pushes to main always run
+      # everything. If git fails here, the step fails rather than skipping the checks.
+      - id: changes
+        name: Check for code changes
+        run: |
+          code=true
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            # HEAD is GitHub's merge of the PR into main, so its first parent is main.
+            files=$(git diff --name-only HEAD^1 HEAD)
+            echo "Files this pull request changes:"
+            echo "$files"
+            if ! grep -qvxE 'README\.md|LICENSE|AGENTS\.md' <<< "$files"; then
+              code=false
+              echo "Only docs changed, so the checks are skipped."
+            fi
+          fi
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+
+      # Installs the pnpm version set in package.json's packageManager field.
+      - uses: pnpm/action-setup@v6
+        if: steps.changes.outputs.code == 'true'
+
+      - uses: actions/setup-node@v7
+        if: steps.changes.outputs.code == 'true'
+        with:
+          node-version: 26
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+        if: steps.changes.outputs.code == 'true'
+
+      - run: pnpm lint
+        if: steps.changes.outputs.code == 'true'
+
+      - run: pnpm typecheck
+        if: steps.changes.outputs.code == 'true'
+
+      - run: pnpm test
+        if: steps.changes.outputs.code == 'true'
+
+      # Turbopack's build cache, so the build reuses work from earlier runs. The key changes with
+      # the dependencies and the code, so a new cache is saved after each change. Until then, the
+      # newest cache for the same lockfile is restored. Pull requests can read main's caches.
+      - uses: actions/cache@v6
+        if: steps.changes.outputs.code == 'true'
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('app/**', 'lib/**', 'public/**') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+
+      - run: pnpm build
+        if: steps.changes.outputs.code == 'true'
