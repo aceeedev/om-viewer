@@ -1,14 +1,12 @@
-import type { Metadata } from "next";
+import { pageMetadata, REPO_ISSUES_URL } from "@/lib/site";
 import { InfoPage, InfoSection } from "../_components/info-page";
 import { ExternalLink } from "../_components/text-link";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
+  path: "/privacy",
   title: "Privacy Policy",
-  description:
-    "Your photos are read in your browser and never uploaded. No accounts, cookies or analytics.",
-};
-
-const REPO_ISSUES_URL = "https://github.com/aceeedev/om-viewer/issues";
+  description: "Your photos are read in your browser and never uploaded. No accounts, cookies or analytics.",
+});
 const VERCEL_PRIVACY_URL = "https://vercel.com/legal/privacy-notice";
 
 export default function PrivacyPage() {

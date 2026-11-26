@@ -1,17 +1,15 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { SAMPLE_PHOTOS, SAMPLE_SOURCE_PAGE } from "@/lib/sample-photos";
+import { AUTHOR, pageMetadata, REPO_URL } from "@/lib/site";
 import { InfoPage, InfoSection } from "../_components/info-page";
 import { ExternalLink, TEXT_LINK } from "../_components/text-link";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
+  path: "/about",
   title: "About",
   description:
     "What OM Recipe Viewer does, which photos it reads, and who made the sample photos. An independent tool, not affiliated with OM Digital Solutions.",
-};
-
-const REPO_URL = "https://github.com/aceeedev/om-viewer";
-const AUTHOR_URL = "https://www.linkedin.com/in/andrew-michael-collins/";
+});
 
 export default function AboutPage() {
   return (
@@ -77,7 +75,7 @@ export default function AboutPage() {
 
       <InfoSection title="Who made it">
         <p>
-          OM Recipe Viewer is made by <ExternalLink href={AUTHOR_URL}>Andrew Collins</ExternalLink>. The code is
+          OM Recipe Viewer is made by <ExternalLink href={AUTHOR.url}>{AUTHOR.name}</ExternalLink>. The code is
           on <ExternalLink href={REPO_URL}>GitHub</ExternalLink>. If a photo doesn&apos;t open or shows the wrong
           settings, please open an issue there.
         </p>
