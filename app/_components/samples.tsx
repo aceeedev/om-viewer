@@ -1,7 +1,5 @@
-import type { ReactNode } from "react";
 import { SAMPLE_SOURCE_PAGE, type SamplePhoto } from "@/lib/sample-photos";
-
-const FOCUS_RING = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black";
+import { ExternalLink, FOCUS_RING } from "./text-link";
 
 /**
  * "Try a sample", for visitors without an OM System photo at hand. Outlined, so the solid
@@ -42,22 +40,5 @@ export function SampleSourceNote() {
       A random Creative Profile by an OM SYSTEM Ambassador photographer, from{" "}
       <ExternalLink href={SAMPLE_SOURCE_PAGE.url}>{SAMPLE_SOURCE_PAGE.title}</ExternalLink>.
     </p>
-  );
-}
-
-function ExternalLink({ href, children }: { href: string; children: ReactNode }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={
-        "rounded-sm text-inherit underline decoration-zinc-400 underline-offset-2 transition-colors " +
-        "hover:text-black hover:decoration-black " +
-        FOCUS_RING
-      }
-    >
-      {children}
-    </a>
   );
 }

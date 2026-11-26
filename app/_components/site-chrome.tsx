@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 /** The site's name as a wordmark: Archivo, wide and extra-bold. */
 const WORDMARK = "font-extrabold font-stretch-expanded";
 
@@ -5,8 +7,8 @@ const WORDMARK = "font-extrabold font-stretch-expanded";
 export const CONTAINER = "mx-auto w-full max-w-6xl px-6";
 
 /**
- * The black bar along the top, with the site's name linking home. A plain link, not next/link:
- * the site is one page, and a full load is what clears the viewer back to its empty state.
+ * The black bar along the top, with the site's name linking home. A plain link, not next/link: a full
+ * load is what clears the viewer back to its empty state.
  */
 export function SiteHeader() {
   return (
@@ -18,6 +20,23 @@ export function SiteHeader() {
         </a>
       </div>
     </header>
+  );
+}
+
+/**
+ * The off-white band at the top of a page with its headline centered, as on OM System's own pages.
+ * `children` is the line of text under the headline.
+ */
+export function PageIntro({ title, children }: { title: ReactNode; children?: ReactNode }) {
+  return (
+    <section className="border-b border-zinc-200 bg-zinc-50">
+      <div className={`${CONTAINER} flex flex-col items-center gap-4 py-12 text-center sm:py-16`}>
+        <h1 className="max-w-3xl text-3xl leading-[1.12] font-extrabold font-stretch-expanded text-balance sm:text-4xl">
+          {title}
+        </h1>
+        {children && <p className="max-w-2xl text-zinc-600">{children}</p>}
+      </div>
+    </section>
   );
 }
 
