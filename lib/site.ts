@@ -16,6 +16,18 @@ export const AUTHOR = {
 export const REPO_URL = "https://github.com/aceeedev/om-viewer";
 export const REPO_ISSUES_URL = `${REPO_URL}/issues`;
 
+/**
+ * The social preview image drawn by app/opengraph-image.tsx. Listed on every page by pageMetadata(): Next
+ * only adds it to the home page on its own, since a page's own `openGraph` replaces the inherited one.
+ */
+export const SOCIAL_IMAGE = {
+  url: "/opengraph-image",
+  width: 1200,
+  height: 630,
+  type: "image/png",
+  alt: `${SITE_NAME}: see the Color Profile and picture settings stored in an OM System photo`,
+} as const;
+
 /** The layout's title template: "About" becomes "About · OM Recipe Viewer". */
 export const TITLE_TEMPLATE = `%s · ${SITE_NAME}`;
 
@@ -49,6 +61,7 @@ export function pageMetadata({
       // The title template doesn't apply here, and a shared card often shows only this title.
       title: title ? TITLE_TEMPLATE.replace("%s", title) : SITE_NAME,
       description,
+      images: [SOCIAL_IMAGE],
     },
   };
 }

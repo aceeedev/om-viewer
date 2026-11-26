@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pageMetadata, SITE_DESCRIPTION, SITE_NAME } from "../site";
+import { pageMetadata, SITE_DESCRIPTION, SITE_NAME, SOCIAL_IMAGE } from "../site";
 
 describe("pageMetadata", () => {
   it("gives a page its own canonical URL and Open Graph URL", () => {
@@ -10,6 +10,7 @@ describe("pageMetadata", () => {
       siteName: SITE_NAME,
       title: `About · ${SITE_NAME}`,
       description: "What it is.",
+      images: [SOCIAL_IMAGE],
     });
   });
 
