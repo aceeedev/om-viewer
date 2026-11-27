@@ -1,0 +1,26 @@
+name: Bug report
+description: Something on the site doesn't work or looks wrong. For a photo that won't open or shows the wrong settings, use "A photo didn't read".
+labels: [bug]
+body:
+  - type: textarea
+    id: details
+    attributes:
+      label: What happened?
+      description: What you did, what went wrong, and what you expected instead.
+      placeholder: On my phone, the Full details tables run off the right edge of the screen.
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: Safari on iPhone 17, Chrome on Windows 11, ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot
+      description: Drag one in here, if it helps show the problem.

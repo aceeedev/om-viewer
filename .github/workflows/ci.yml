@@ -27,10 +27,10 @@ jobs:
           # Also fetches the merge commit's parents, so the next step can see what the PR changes.
           fetch-depth: 2
 
-      # A pull request that only changes these docs skips every step below. The job still passes,
-      # so the required check doesn't hold the PR up. (Skipping the whole workflow with
-      # paths-ignore would leave the required check waiting forever.) Pushes to main always run
-      # everything. If git fails here, the step fails rather than skipping the checks.
+      # A pull request that only changes these docs and the issue templates skips every step below.
+      # The job still passes, so the required check doesn't hold the PR up. (Skipping the whole
+      # workflow with paths-ignore would leave the required check waiting forever.) Pushes to main
+      # always run everything. If git fails here, the step fails rather than skipping the checks.
       - id: changes
         name: Check for code changes
         run: |
@@ -40,7 +40,7 @@ jobs:
             files=$(git diff --name-only HEAD^1 HEAD)
             echo "Files this pull request changes:"
             echo "$files"
-            if ! grep -qvxE 'README\.md|LICENSE|AGENTS\.md' <<< "$files"; then
+            if ! grep -qvxE 'README\.md|LICENSE|AGENTS\.md|\.github/ISSUE_TEMPLATE/.+' <<< "$files"; then
               code=false
               echo "Only docs changed, so the checks are skipped."
             fi
