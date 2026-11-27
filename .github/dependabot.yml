@@ -1,0 +1,45 @@
+version: 2
+
+updates:
+  # The npm ecosystem also covers pnpm and pnpm-lock.yaml.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # Only offers releases at least a week old, so a hijacked release is usually pulled before
+    # it's proposed. Security updates ignore this and arrive right away.
+    cooldown:
+      default-days: 7
+    # Gives PR titles like "chore(deps): bump next from 16.4.6 to 16.4.7".
+    commit-message:
+      prefix: chore(deps)
+      prefix-development: chore(deps-dev)
+    # A dependency goes into the first group it matches. All minor and patch updates share one
+    # weekly PR. Each major update gets its own PR, except for packages that must move together.
+    # Groups only apply to version updates, so each security update still arrives on its own.
+    groups:
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+      # eslint-config-next is released alongside next and should match its version.
+      next:
+        patterns: [next, eslint-config-next]
+      react:
+        patterns: [react, react-dom, "@types/react", "@types/react-dom"]
+      tailwind:
+        patterns: [tailwindcss, "@tailwindcss/*"]
+
+  # The actions used in .github/workflows.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore(ci)
+    # One PR for all action updates, majors included. CI runs the new versions on that PR.
+    groups:
+      actions:
+        patterns: ["*"]
