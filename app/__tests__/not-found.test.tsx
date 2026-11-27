@@ -17,7 +17,7 @@ describe("NotFound", () => {
     expect(links).toEqual([{ href: "/", text: "Go to the viewer" }]);
   });
 
-  it("sets a title, with no canonical URL or Open Graph tags", () => {
+  it("sets only a title, with no canonical URL of its own", () => {
     expect(metadata).toEqual({ title: "Page not found" });
   });
 });

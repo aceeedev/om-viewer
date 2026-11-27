@@ -3,7 +3,8 @@ import Link from "next/link";
 import { CONTAINER, PageIntro } from "./_components/site-chrome";
 import { FOCUS_RING } from "./_components/text-link";
 
-// No canonical URL or Open Graph tags: this page has no address of its own. Next adds noindex itself.
+// Only a title, not pageMetadata(): this page has no address of its own to give as a canonical URL. Next
+// adds noindex itself, and still gives it the site's social card from app/opengraph-image.tsx.
 export const metadata: Metadata = {
   title: "Page not found",
 };
