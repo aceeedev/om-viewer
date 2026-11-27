@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:samples": "CHECK_SAMPLES=1 vitest run lib/__tests__/sample-photos.network.test.ts",
     "samples:build": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-samples.mjs"
