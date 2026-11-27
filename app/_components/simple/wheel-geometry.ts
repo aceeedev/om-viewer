@@ -41,12 +41,13 @@ export const points = (list: [number, number][]) => list.map(([x, y]) => `${x},$
 
 /**
  * One side of the outline, from hue `index`'s corner clockwise to the next, as a filled band
- * `WHEEL.outlineWidth` thick. Bands meet on the corner bisectors, so each side can have its own
- * color and the corners stay sharp. `rotation` (degrees) turns the outline; half a side's angle
- * back centers each side on its index's direction instead of starting there.
+ * `width` thick (`WHEEL.outlineWidth` unless a small icon needs it bolder). Bands meet on the
+ * corner bisectors, so each side can have its own color and the corners stay sharp. `rotation`
+ * (degrees) turns the outline; half a side's angle back centers each side on its index's
+ * direction instead of starting there.
  */
-export function outlineSide(index: number, count: number, rotation = 0): string {
-  const half = WHEEL.outlineWidth / 2 / Math.cos(Math.PI / count);
+export function outlineSide(index: number, count: number, rotation = 0, width: number = WHEEL.outlineWidth): string {
+  const half = width / 2 / Math.cos(Math.PI / count);
   const a = hueAngle(index, count) + rotation;
   const b = hueAngle(index + 1, count) + rotation;
   return points([

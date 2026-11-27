@@ -51,4 +51,15 @@ describe("wheel geometry", () => {
     expect(cx).toBeCloseTo(dx, 2);
     expect(cy).toBeCloseTo(-dy, 2);
   });
+
+  it("draws a bolder outline when given a width", () => {
+    expect(outlineSide(0, 12, 0, WHEEL.outlineWidth)).toBe(outlineSide(0, 12));
+    const thickness = (width: number) => {
+      const [[ox, oy], [px, py], [jx, jy], [ix, iy]] = outlineSide(0, 12, 0, width)
+        .split(" ")
+        .map((p) => p.split(",").map(Number));
+      return Math.hypot((ox + px) / 2, (oy + py) / 2) - Math.hypot((ix + jx) / 2, (iy + jy) / 2);
+    };
+    expect(thickness(14)).toBeCloseTo(14, 1);
+  });
 });
