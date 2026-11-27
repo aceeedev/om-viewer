@@ -1,0 +1,71 @@
+name: A photo didn't read
+description: A photo wouldn't open, or it opened with the wrong settings.
+title: "Photo didn't read: "
+labels: [bug, photo]
+body:
+  - type: textarea
+    id: details
+    attributes:
+      label: What happened?
+      description: The error message, word for word. Or the setting that's wrong or missing, with what the site shows and what the camera shows.
+      placeholder: |
+        This JPEG has no camera maker notes, so its picture settings can't be read.
+
+        or
+
+        Color Profile Control shows saturation +2 for red, but the camera shows +4.
+    validations:
+      required: true
+
+  - type: input
+    id: camera
+    attributes:
+      label: Camera model
+      placeholder: PEN, OM-3, OM-1 Mark II, ...
+    validations:
+      required: true
+
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware version
+      description: If the photo opens, it's under **Full details**, in **Camera & lens**. Otherwise, the camera shows it in its menus.
+      placeholder: Version 1.0
+
+  - type: dropdown
+    id: source
+    attributes:
+      label: Where did the photo come from?
+      description: Apps and websites often remove the camera's settings from a photo, so this helps a lot.
+      options:
+        - Straight from the camera (memory card or USB cable)
+        - Sent to a phone with OM Image Share
+        - Edited or exported in an app (OM Workspace, Lightroom, ...)
+        - From a photo library or website (Google Photos, iCloud, Instagram, ...)
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: photo
+    attributes:
+      label: The photo
+      description: |
+        Zip the photo and drag the .zip in here. GitHub turns away images over 10 MB, while a .zip of up to 25 MB arrives exactly as it was. Or paste a link that downloads the original file.
+
+        **This page is public.** Anyone can download what you share, including the camera's and lens's serial numbers stored in the photo. To remove them first, see below.
+
+  - type: markdown
+    attributes:
+      value: |
+        <details>
+        <summary>Remove the serial numbers first (optional)</summary>
+
+        With [ExifTool](https://exiftool.org) installed, this command blanks the camera's and lens's serial numbers and leaves the picture settings as they are. It changes the file in place, so run it on a copy, with the copy's name in place of `photo.jpg`:
+
+        ```
+        exiftool -overwrite_original -ExifIFD:SerialNumber= -ExifIFD:LensSerialNumber= -XMP-aux:SerialNumber= -XMP-aux:LensSerialNumber= "-Olympus:SerialNumber= " "-Olympus:InternalSerialNumber= " "-Olympus:LensSerialNumber= " photo.jpg
+        ```
+
+        If the copy opens fine on the site, mention it in **The photo** above.
+        </details>
