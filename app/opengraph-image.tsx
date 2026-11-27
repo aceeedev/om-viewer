@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { SITE_NAME, SOCIAL_IMAGE } from "@/lib/site";
-import { colorWheelSvg } from "./_components/simple/wheel-svg";
+import { COLOR_PROFILE_RANGE, EXAMPLE_VALUES, SCREEN_COLOR, colorWheelSvg } from "./_components/simple/wheel-svg";
 
 /**
  * The social preview image, shown when a link to the site is shared. Drawn at build time in the site's
@@ -23,8 +23,6 @@ const [expandedExtraBold, regular, medium] = await Promise.all([
   font("Archivo-Regular.ttf"),
   font("Archivo-Medium.ttf"),
 ]);
-
-const SCREEN = "#0b0b0d"; // --color-screen in globals.css
 
 export default function OpengraphImage() {
   return new ImageResponse(
@@ -54,7 +52,7 @@ export default function OpengraphImage() {
             Color Profile, Monochrome Profile and picture settings from OM System JPEGs.
           </div>
         </div>
-        <div style={{ display: "flex", padding: 28, borderRadius: 20, background: SCREEN }}>
+        <div style={{ display: "flex", padding: 28, borderRadius: 20, background: SCREEN_COLOR }}>
           <img src={wheelSvg()} width={360} height={360} alt="" />
         </div>
       </div>
@@ -70,11 +68,8 @@ export default function OpengraphImage() {
   );
 }
 
-/** An example Color Profile, so the wheel has a shape: a value from −5 to +5 for each hue. */
-const EXAMPLE_VALUES = [2, 3, 1, 0, -2, -1, 1, 3, 4, 1, -1, 2];
-
 /** The full wheel, as in the Simple view, as an SVG data URL for the image's <img>. */
 function wheelSvg(): string {
-  const svg = colorWheelSvg(EXAMPLE_VALUES, { min: -5, max: 5 });
+  const svg = colorWheelSvg(EXAMPLE_VALUES, COLOR_PROFILE_RANGE);
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 }
