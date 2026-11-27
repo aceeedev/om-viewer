@@ -1,0 +1,19 @@
+name: Feature request
+description: An idea for something the site could do, or a camera it could support.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: details
+    attributes:
+      label: What would you like?
+      description: What you'd like the site to do, and what it would help you with.
+      placeholder: Show the photo's aspect ratio next to the exposure line, so I can match it when I set up the camera.
+    validations:
+      required: true
+
+  - type: input
+    id: camera
+    attributes:
+      label: Camera model
+      description: If the idea is about a particular camera.
+      placeholder: PEN, OM-3, OM-1 Mark II, ...
