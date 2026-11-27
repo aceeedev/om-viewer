@@ -47,12 +47,6 @@ const WB_FINE_TUNE_RANGE = { min: -7, max: 7 };
 const WB_AUTO = 0;
 const WB_AUTO_KEEP_WARM_OFF = 1;
 
-export const UNVERIFIED = {
-  colorProfileShading:
-    "Assumed to be stored in the same tag as Monochrome Profile shading (0x053a); " +
-    "not yet confirmed on a Color Profile shot with shading set.",
-} as const;
-
 /** Turn parsed maker notes into labeled settings. Missing tags become undefined fields. */
 export function buildRecipe(metadata: PhotoMetadata): Recipe {
   const cs: Ifd = metadata.makerNote.cameraSettings ?? new Map();
@@ -113,7 +107,6 @@ function readProfile(cs: Ifd, gradation: Gradation | undefined): Profile {
 
   if (id >= 9 && id <= 11) {
     const cp = ints(cs, Tag.ColorProfileSettings);
-    const shading = int(cs, Tag.MonochromeVignetting);
     return {
       kind: "colorProfile",
       mode,
@@ -123,16 +116,12 @@ function readProfile(cs: Ifd, gradation: Gradation | undefined): Profile {
         cp && cp.length >= 2 + COLOR_PROFILE_HUES.length
           ? COLOR_PROFILE_HUES.map((hue, i) => ({ hue, value: cp[2 + i], min: cp[0], max: cp[1] }))
           : [],
-      shading:
-        shading === undefined
-          ? undefined
-          : { value: shading, ...SHADING_RANGE, unverified: UNVERIFIED.colorProfileShading },
+      shading: readShading(cs),
     };
   }
 
   if ((id >= 12 && id <= 14) || id === 18) {
     const mp = ints(cs, Tag.MonochromeProfileSettings);
-    const shading = int(cs, Tag.MonochromeVignetting);
     return {
       kind: "monochromeProfile",
       mode,
@@ -141,7 +130,7 @@ function readProfile(cs: Ifd, gradation: Gradation | undefined): Profile {
       filter: choice(mp?.[0], MONOCHROME_FILTERS),
       filterStrength: rangedAt(mp, 3),
       filmGrain: choice(int(cs, Tag.FilmGrainEffect), FILM_GRAIN),
-      shading: shading === undefined ? undefined : { value: shading, ...SHADING_RANGE },
+      shading: readShading(cs),
       toning: choice(int(cs, Tag.MonochromeColor), MONOCHROME_COLORS),
     };
   }
@@ -192,6 +181,16 @@ function readProfile(cs: Ifd, gradation: Gradation | undefined): Profile {
   }
 
   return { kind: "unknown", mode };
+}
+
+/**
+ * Shading Effect, for Color and Monochrome Profiles alike. ExifTool names the tag after
+ * Monochrome Profiles, but Color Profile shots keep their shading there too (checked on two
+ * OM-3 Color Profile photos with shading −1, issue #9).
+ */
+function readShading(cs: Ifd): Ranged | undefined {
+  const shading = int(cs, Tag.MonochromeVignetting);
+  return shading === undefined ? undefined : { value: shading, ...SHADING_RANGE };
 }
 
 // ---- shared sections -------------------------------------------------------

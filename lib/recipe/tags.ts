@@ -36,6 +36,7 @@ export const CameraSettingsTag = {
   MonochromeProfileSettings: 0x0537,
   FilmGrainEffect: 0x0538,
   ColorProfileSettings: 0x0539,
+  /** Shading Effect of Color Profiles too, despite ExifTool's name. */
   MonochromeVignetting: 0x053a,
   MonochromeColor: 0x053b,
 } as const;

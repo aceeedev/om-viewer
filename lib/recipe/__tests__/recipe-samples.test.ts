@@ -90,8 +90,7 @@ describe.skipIf(!samplesRunnable)("recipe matches exiftool labels", () => {
           expect(p.hues).toHaveLength(12);
           expect(parts.slice(0, 2)).toEqual([`Min ${p.hues[0].min}`, `Max ${p.hues[0].max}`]);
           expect(p.hues.map((h) => `${h.hue} ${h.value}`)).toEqual(parts.slice(2));
-          expect(p.shading?.value).toBe(Number(printed("MonochromeVignetting")));
-          expect(p.shading?.unverified).toBeTruthy();
+          expect(p.shading).toEqual({ value: Number(printed("MonochromeVignetting")), min: -5, max: 5 });
           break;
         }
         case "monochromeProfile": {

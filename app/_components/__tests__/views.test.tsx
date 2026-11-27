@@ -45,9 +45,10 @@ describe("SimpleView", () => {
     // The settings screen: each setting's name and its value as the camera prints it, with its
     // range for screen readers.
     expect(t).toMatch(
-      /Settings Shading Effect \* −3 \(−5 to \+5\) Sharpness −1 \(−2 to \+2\) Contrast −2 \(−2 to \+2\) Exposure Comp −0\.7 \(−5 to \+5\)/,
+      /Settings Shading Effect −3 \(−5 to \+5\) Sharpness −1 \(−2 to \+2\) Contrast −2 \(−2 to \+2\) Exposure Comp −0\.7 \(−5 to \+5\)/,
     );
-    expect(t).toContain("Shading Effect is unverified");
+    expect(t).not.toContain("unverified");
+    expect(text(<FullView recipe={recipe} />)).not.toContain("Unverified");
     // Tone curve: "Sh −4  Mid ±0  Hi +4" across the top of the screen, as on the camera; two curves.
     expect(t).toMatch(/Highlight & Shadow Sh −4 .*Mid ±0 .*Hi \+4 .*Shadows −4 \(−7 to \+7\) Midtones 0 \(−7 to \+7\) Highlights \+4 \(−7 to \+7\)/);
     expect(html.match(/<path d="M36 260Q/g)).toHaveLength(2);

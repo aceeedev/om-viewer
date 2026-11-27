@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseJpeg } from "@/lib/exif";
-import { buildRecipe, UNVERIFIED, type Recipe } from "@/lib/recipe";
+import { buildRecipe, type Recipe } from "@/lib/recipe";
 import { buildMakerNote, buildOmJpeg, sampleCameraSettings, type Field } from "@/lib/exif/__tests__/helpers/build-jpeg";
 
 /** sampleCameraSettings with some tags replaced or added. */
@@ -18,15 +18,15 @@ function recipeFor(cameraSettings: Field[]): Recipe {
 const mode = (id: number): Field => ({ tag: 0x0520, type: "u16", value: [id, 2] });
 
 describe("buildRecipe on synthetic maker notes", () => {
-  it("decodes a Color Profile with all 12 hues and flags shading as unverified", () => {
+  it("decodes a Color Profile with all 12 hues and shading", () => {
     const recipe = recipeFor(withSettings([mode(11)]));
     expect(recipe.profile).toMatchObject({
       kind: "colorProfile",
       mode: { id: 11, label: "Color Profile 3", slot: 3 },
       contrast: { value: -2, min: -2, max: 2 },
-      shading: { value: -3, min: -5, max: 5, unverified: UNVERIFIED.colorProfileShading },
     });
     if (recipe.profile.kind !== "colorProfile") throw new Error("wrong kind");
+    expect(recipe.profile.shading).toEqual({ value: -3, min: -5, max: 5 });
     expect(recipe.profile.hues[0]).toEqual({ hue: "Yellow", value: 4, min: -5, max: 5 });
     expect(recipe.profile.hues[11]).toEqual({ hue: "Yellow-green", value: 1, min: -5, max: 5 });
   });
