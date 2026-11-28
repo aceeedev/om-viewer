@@ -4,6 +4,13 @@ import * as fmt from "../format";
 import { PanelColumn, SCREEN } from "./panel-column";
 import { UnverifiedMark } from "./panel-row";
 
+/**
+ * A 2px ring (and the gap inside a ring) at full size, in the screen's units so it shrinks with
+ * the screen (`ring-2` and `ring-offset-2` stay 2px).
+ */
+export const SCREEN_RING = "ring-[length:calc(var(--spacing)/2)]";
+export const SCREEN_RING_OFFSET = "ring-offset-[length:calc(var(--spacing)/2)]";
+
 /** The most ticks a scale draws; a longer range gets one tick every few steps. */
 const MAX_TICKS = 21;
 
@@ -85,7 +92,7 @@ function Scale({ value, min, max }: { value: number; min: number; max: number })
         />
       ))}
       <span
-        className="absolute top-1/2 h-3.5 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white ring-2 ring-screen"
+        className={`absolute top-1/2 h-3.5 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white ${SCREEN_RING} ring-screen`}
         style={{ left: `${at(value)}%` }}
       />
     </div>

@@ -1,6 +1,6 @@
 import { MONOCHROME_COLORS, type Choice } from "@/lib/recipe";
 import { FILTERS } from "./filter-wheel";
-import { SettingRow } from "./slider";
+import { SCREEN_RING, SCREEN_RING_OFFSET, SettingRow } from "./slider";
 
 export interface Swatch {
   id: number;
@@ -42,7 +42,7 @@ export function SwatchRow({ label, choice, swatches }: { label: string; choice: 
           <span
             key={s.id}
             title={s.name}
-            className={`size-3 rounded-full ${s.id === choice.id ? "ring-2 ring-white ring-offset-2 ring-offset-screen" : "opacity-55"}`}
+            className={`size-3 rounded-full ${s.id === choice.id ? `${SCREEN_RING} ring-white ${SCREEN_RING_OFFSET} ring-offset-screen` : "opacity-55"}`}
             style={{ backgroundColor: s.color }}
           />
         ))}

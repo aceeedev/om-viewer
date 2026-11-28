@@ -23,8 +23,9 @@ function WhiteBalanceScreen({ wb }: { wb: WhiteBalance }) {
     <PanelColumn>
       <div className={`text-white ${SCREEN}`}>
         <h3 className="sr-only">White balance</h3>
-        {/* Two lines tall either way, so the screen stays square. */}
-        <div className={`flex flex-col px-5 pt-3.5 ${ft ? "h-15" : "pb-3.5"}`}>
+        {/* Two lines tall either way, so the screen stays square. The lines keep their height when
+            the text is enlarged on a phone (see PanelRow). */}
+        <div className={`flex flex-col px-5 pt-3.5 leading-[calc(1.5/var(--screen-text-boost,1))] ${ft ? "h-15" : "pb-3.5"}`}>
           <p className="flex items-baseline justify-between gap-3 screen-text-15 font-semibold tabular-nums">
             {mode && (
               <span>
@@ -105,7 +106,7 @@ function FineTuneBox({ fineTune }: { fineTune: WhiteBalanceFineTune }) {
             y={t.y + t.h / 2}
             textAnchor="middle"
             dominantBaseline="central"
-            fontSize={15}
+            className="screen-svg-text-15"
             fontWeight={600}
             fill="white"
             fillOpacity={t.lit ? 1 : 0.4}
