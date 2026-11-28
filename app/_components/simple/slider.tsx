@@ -52,7 +52,7 @@ export function SettingRow({
   return (
     <div className="flex flex-col gap-1">
       <p className="flex items-baseline justify-between gap-3 leading-5">
-        <span className="screen-text-14 text-white/65">
+        <span className="screen-text-14">
           {label}
           {mark}
         </span>

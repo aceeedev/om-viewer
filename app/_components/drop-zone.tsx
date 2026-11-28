@@ -142,8 +142,10 @@ function LinkForm({
           spellCheck={false}
           disabled={busy}
           className={
-            "min-w-0 flex-1 rounded-md border-[1.5px] border-zinc-400 bg-white px-3 py-2.5 text-sm transition-colors " +
-            "placeholder:text-zinc-400 hover:border-black focus:border-black disabled:opacity-50 " +
+            // zinc-500, not lighter: the placeholder is the small field's only visible label, and a
+            // field's edge needs 3:1 against the page.
+            "min-w-0 flex-1 rounded-md border-[1.5px] border-zinc-500 bg-white px-3 py-2.5 text-sm transition-colors " +
+            "placeholder:text-zinc-500 hover:border-black focus:border-black disabled:opacity-50 " +
             FOCUS_RING
           }
         />

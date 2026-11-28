@@ -2,14 +2,13 @@ import { useId } from "react";
 import type { Choice, Ranged } from "@/lib/recipe";
 import { HUE_SWATCHES } from "../sections";
 import { labelCenter } from "./filter-labels";
-import { PanelColumn, SCREEN } from "./panel-column";
+import { DIMMED_TEXT, PanelColumn, SCREEN } from "./panel-column";
 import { WHEEL, hueAngle, outlineSide, points, polar } from "./wheel-geometry";
 
 /** The face inside the octagon. */
 const FACE = "#16161a";
-/** Opacity of the sides, and of the names, of the filters not in use. */
+/** Opacity of the sides of the filters not in use (their names are DIMMED_TEXT). */
 const DIMMED = 0.35;
-const DIMMED_LABEL = 0.45;
 
 /**
  * The eight color filters, in the camera's order (IDs 1–8) and clockwise from the top like the
@@ -97,7 +96,7 @@ export function FilterWheel({ filter, level }: { filter: Choice | undefined; lev
             className="screen-svg-text-15"
             fontWeight={600}
             fill="white"
-            fillOpacity={selected ? 1 : DIMMED_LABEL}
+            fillOpacity={selected ? 1 : DIMMED_TEXT}
           >
             {readout}
           </text>
@@ -159,7 +158,7 @@ export function FilterWheel({ filter, level }: { filter: Choice | undefined; lev
                 dominantBaseline="central"
                 fontSize={15}
                 fill="white"
-                fillOpacity={i === index ? 1 : DIMMED_LABEL}
+                fillOpacity={i === index ? 1 : DIMMED_TEXT}
               >
                 {f.name}
               </text>
