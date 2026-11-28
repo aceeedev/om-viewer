@@ -28,6 +28,23 @@
   --color-screen: #0b0b0d;
 }
 
+/*
+ * The Simple view's camera screens are drawn 280px wide and shrink with their column, so two fit
+ * side by side on a phone. Their SVGs scale by themselves; `screen-scale` scales the rest of a
+ * screen with them, by measuring Tailwind's spacing (and the corner radius) in the screen's width:
+ * one unit is a 70th of it, the usual 4px at full size. The width is the nearest @container's,
+ * which is the screen's PanelColumn.
+ */
+@utility screen-scale {
+  --spacing: calc(100cqw / 70);
+  --radius-xl: calc(var(--spacing) * 3);
+}
+
+/* Text on a camera screen, in pixels at full size: screen-text-15 is 15px on a 280px screen. */
+@utility screen-text-* {
+  font-size: calc(var(--spacing) * --value(number) / 4);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

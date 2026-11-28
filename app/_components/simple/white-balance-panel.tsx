@@ -25,7 +25,7 @@ function WhiteBalanceScreen({ wb }: { wb: WhiteBalance }) {
         <h3 className="sr-only">White balance</h3>
         {/* Two lines tall either way, so the screen stays square. */}
         <div className={`flex flex-col px-5 pt-3.5 ${ft ? "h-15" : "pb-3.5"}`}>
-          <p className="flex items-baseline justify-between gap-3 text-[15px] font-semibold tabular-nums">
+          <p className="flex items-baseline justify-between gap-3 screen-text-15 font-semibold tabular-nums">
             {mode && (
               <span>
                 {mode.name}
@@ -33,7 +33,7 @@ function WhiteBalanceScreen({ wb }: { wb: WhiteBalance }) {
               </span>
             )}
             {ft && (
-              <span className="text-[17px]" title={`Fine-tune: ${fmt.fineTuneWords(ft.amber.value, ft.green.value)}`}>
+              <span className="screen-text-17" title={`Fine-tune: ${fmt.fineTuneWords(ft.amber.value, ft.green.value)}`}>
                 <span aria-hidden="true">{fmt.fineTune(ft.amber.value, ft.green.value)}</span>
                 <span className="sr-only">
                   fine-tune {fmt.fineTuneWords(ft.amber.value, ft.green.value)} (
@@ -43,7 +43,7 @@ function WhiteBalanceScreen({ wb }: { wb: WhiteBalance }) {
             )}
           </p>
           {mode && mode.details.length > 0 && (
-            <p aria-hidden="true" className="text-[13px] text-white/60">
+            <p aria-hidden="true" className="screen-text-13 text-white/60">
               {mode.details.join(" · ")}
             </p>
           )}
@@ -153,8 +153,8 @@ export function FineTuneNote({ wb }: { wb: WhiteBalance }) {
 }
 
 /**
- * The white balance screen, then the mode's other settings on a screen of their own beside it
- * (below it on narrow screens). Without settings it's white balance on its own.
+ * The white balance screen, then the mode's other settings on a screen of their own next to it
+ * (on the next row when that one's full). Without settings it's white balance on its own.
  */
 export function WhiteBalanceAndSliders({ wb, children }: { wb: WhiteBalance; children?: ReactNode }) {
   return (

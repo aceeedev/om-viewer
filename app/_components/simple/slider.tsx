@@ -45,11 +45,11 @@ export function SettingRow({
   return (
     <div className="flex flex-col gap-1">
       <p className="flex items-baseline justify-between gap-3 leading-5">
-        <span className="text-sm text-white/65">
+        <span className="screen-text-14 text-white/65">
           {label}
           {mark}
         </span>
-        <span className="text-right text-[15px] font-semibold tabular-nums">
+        <span className="text-right screen-text-15 font-semibold tabular-nums">
           {value}
           {choices && <span className="sr-only"> ({choices})</span>}
         </span>

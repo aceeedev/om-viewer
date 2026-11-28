@@ -289,6 +289,17 @@ describe("SimpleView", () => {
     expect(text(<SimpleView recipe={noEffect} />)).toContain("Effect Off");
   });
 
+  it("puts screens two to a row on phones, each scaled to its own column", () => {
+    for (const id of [9, 7, 12, 17, 99]) {
+      const html = renderToStaticMarkup(<SimpleView recipe={syntheticRecipe([mode(id)])} />);
+      expect(html, `mode ${id}`).toContain('class="grid grid-cols-2 items-start gap-3 sm:flex sm:flex-wrap sm:gap-6"');
+      const columns = html.match(/class="@container flex w-full max-w-70/g) ?? [];
+      const screens = html.match(/rounded-xl bg-screen screen-scale/g) ?? [];
+      expect(screens.length, `mode ${id}`).toBeGreaterThan(0);
+      expect(screens.length, `mode ${id}`).toBe(columns.length);
+    }
+  });
+
   it("draws every picture mode as panels, with no plain tables left", () => {
     for (const id of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 17, 18, 256, 512, 99]) {
       const html = renderToStaticMarkup(<SimpleView recipe={syntheticRecipe([mode(id)])} />);
