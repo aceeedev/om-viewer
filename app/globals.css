@@ -54,7 +54,18 @@
   font-size: calc(--value(number) * 1px * var(--screen-text-boost, 1));
 }
 
+/*
+ * Black like the header and footer (THEME_COLOR in lib/site.ts), with the page's white only behind
+ * its main. Safari on iOS 26 ignores theme-color and colors the strips behind the status bar and the
+ * home indicator from the body's background, and browsers show it when you scroll past the top or
+ * bottom of the page. Each page's main grows to fill the space between the header and footer, so
+ * the black never shows there.
+ */
 body {
-  background: var(--background);
+  background: #000;
   color: var(--foreground);
+}
+
+main {
+  background: var(--background);
 }

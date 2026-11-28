@@ -107,8 +107,11 @@ export function ConsentPanel({
         if (event.key === "Escape" && onClose) onClose();
       }}
       className={
-        // Floats over the page, the footer included, and takes no space of its own.
+        // Floats over the page, the footer included, and takes no space of its own. The margins keep it
+        // clear of a phone's home indicator, and of the notch when the phone is sideways: they add each
+        // safe-area inset to its offset from that edge, and are 0 where nothing covers the page.
         "fixed inset-x-3 bottom-3 z-50 flex flex-col gap-3 rounded-md border border-zinc-200 bg-white p-4 text-sm " +
+        "mb-[env(safe-area-inset-bottom)] ml-[env(safe-area-inset-left)] mr-[env(safe-area-inset-right)] " +
         "shadow-lg outline-none sm:inset-x-auto sm:bottom-6 sm:left-6 sm:w-96 sm:p-5"
       }
     >
