@@ -33,6 +33,12 @@ Then open http://localhost:3000.
 | `pnpm typecheck` | Check types with TypeScript          |
 | `pnpm test`      | Run the tests                        |
 
+Google Analytics runs only in production builds made with `NEXT_PUBLIC_GA_ID` set, which is only in Vercel's Production environment, and only for visitors who accept cookies. To see the cookie banner while developing, put a made-up ID in `.env.local`. Don't use the real one, or a local production build would send visits to it:
+
+```bash
+NEXT_PUBLIC_GA_ID=G-TEST000000
+```
+
 Every pull request and push to `main` runs lint, the type check, the tests and the build on GitHub Actions. Pull requests that only change `README.md`, `SECURITY.md`, `LICENSE`, `AGENTS.md` or the issue templates in `.github/ISSUE_TEMPLATE/` skip them.
 
 Some tests compare the parser's output with [ExifTool](https://exiftool.org) on real photos. To run them, install ExifTool and put JPEGs in a `samples/` folder at the project root. These tests are skipped otherwise. The folder is ignored by git, because photos carry camera and lens serial numbers.

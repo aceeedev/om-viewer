@@ -5,16 +5,19 @@ import { ExternalLink } from "../_components/text-link";
 export const metadata = pageMetadata({
   path: "/privacy",
   title: "Privacy Policy",
-  description: "Your photos are read in your browser and never uploaded. No accounts, cookies or analytics.",
+  description:
+    "Your photos are read in your browser and never uploaded. Google Analytics runs only if you accept its cookies.",
 });
 const VERCEL_PRIVACY_URL = "https://vercel.com/legal/privacy-notice";
+/** Google's page on how it uses data from sites with Google Analytics. Its terms ask sites to link it. */
+const GOOGLE_PARTNER_SITES_URL = "https://policies.google.com/technologies/partner-sites";
 
 export default function PrivacyPage() {
   return (
     <InfoPage
       title="Privacy Policy"
-      intro="Your photos stay on your device. The site has no accounts, no cookies and no analytics."
-      updated="November 25, 2026"
+      intro="Your photos stay on your device. The site's only cookies are for Google Analytics, and only if you accept them."
+      updated="November 28, 2026"
     >
       <InfoSection title="Your photos">
         <p>
@@ -35,19 +38,34 @@ export default function PrivacyPage() {
         </p>
       </InfoSection>
 
-      <InfoSection title="No cookies, accounts or analytics">
+      <InfoSection title="No accounts, ads or sales">
         <p>
-          The site doesn&apos;t set cookies, has no accounts, and doesn&apos;t use analytics, ads or trackers.
-          It doesn&apos;t save anything in your browser&apos;s storage.
+          The site has no accounts and no ads, and your information isn&apos;t sold or shared for advertising.
+          Apart from Google Analytics, everything the site loads comes from the site itself.
+        </p>
+      </InfoSection>
+
+      <InfoSection title="Cookies and Google Analytics">
+        <p>
+          If you accept cookies, the site uses Google Analytics to count visits and see how the site is used. It
+          records things like the pages you visit, the links you click, your device and browser, and your rough
+          location based on your IP address. Google keeps this for up to 14 months, and the cookies expire 2
+          years after your last visit.
         </p>
         <p>
-          The fonts and sample photos are served from this site, so visiting it doesn&apos;t load anything from
-          other companies.
+          Google Analytics never gets your photos, anything in them, or the links you paste. Your visits
+          aren&apos;t linked to your Google account or used to target you with ads. See{" "}
+          <ExternalLink href={GOOGLE_PARTNER_SITES_URL}>how Google uses this information</ExternalLink>.
         </p>
+        <p>Until you accept, nothing from Google loads and no cookies are set.</p>
+      </InfoSection>
+
+      <InfoSection title="Changing your cookie settings">
         <p>
-          Because nothing tracks you, there&apos;s nothing for a Do Not Track or Global Privacy Control signal to
-          turn off. No personal information is sold or shared.
+          Use Cookie settings at the bottom of any page to change your answer. Turning cookies off stops Google
+          Analytics and deletes its cookies. Your answer is remembered in your browser and never sent anywhere.
         </p>
+        <p>If your browser sends a Global Privacy Control signal, Google Analytics stays off and you aren&apos;t asked.</p>
       </InfoSection>
 
       <InfoSection title="Hosting">

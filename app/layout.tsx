@@ -1,6 +1,17 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Geist_Mono } from "next/font/google";
-import { AUTHOR, SITE_DESCRIPTION, SITE_NAME, SITE_SHORT_NAME, SITE_URL, THEME_COLOR, TITLE_TEMPLATE } from "@/lib/site";
+import {
+  AUTHOR,
+  GA_MEASUREMENT_ID,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_SHORT_NAME,
+  SITE_URL,
+  THEME_COLOR,
+  TITLE_TEMPLATE,
+} from "@/lib/site";
+import { ConsentBanner } from "./_components/consent-banner";
+import { GoogleAnalytics } from "./_components/google-analytics";
 import { SiteFooter, SiteHeader } from "./_components/site-chrome";
 import "./globals.css";
 
@@ -45,9 +56,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${archivo.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* First, so keyboard and screen reader users reach it before the page. It shows at the bottom.
+            Dev builds show it too, to work on it, but only production builds load Google Analytics. */}
+        {GA_MEASUREMENT_ID && <ConsentBanner />}
         <SiteHeader />
         {children}
         <SiteFooter />
+        {/* Production builds only, so the dev server never sends anything to Google. */}
+        {GA_MEASUREMENT_ID && process.env.NODE_ENV === "production" && (
+          <GoogleAnalytics measurementId={GA_MEASUREMENT_ID} />
+        )}
       </body>
     </html>
   );
