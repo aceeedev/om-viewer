@@ -38,6 +38,13 @@ export default function PrivacyPage() {
         </p>
       </InfoSection>
 
+      <InfoSection title="No accounts, ads or sales">
+        <p>
+          The site has no accounts and no ads, and your information isn&apos;t sold or shared for advertising.
+          Apart from Google Analytics, everything the site loads comes from the site itself.
+        </p>
+      </InfoSection>
+
       <InfoSection title="Cookies and Google Analytics">
         <p>
           If you accept cookies, the site uses Google Analytics to count visits and see how the site is used. It
@@ -53,19 +60,12 @@ export default function PrivacyPage() {
         <p>Until you accept, nothing from Google loads and no cookies are set.</p>
       </InfoSection>
 
-      <InfoSection title="Changing your mind">
+      <InfoSection title="Changing your cookie settings">
         <p>
           Use Cookie settings at the bottom of any page to change your answer. Turning cookies off stops Google
           Analytics and deletes its cookies. Your answer is remembered in your browser and never sent anywhere.
         </p>
         <p>If your browser sends a Global Privacy Control signal, Google Analytics stays off and you aren&apos;t asked.</p>
-      </InfoSection>
-
-      <InfoSection title="No accounts, ads or sales">
-        <p>
-          The site has no accounts and no ads, and your information isn&apos;t sold or shared for advertising.
-          Apart from Google Analytics, everything the site loads comes from the site itself.
-        </p>
       </InfoSection>
 
       <InfoSection title="Hosting">
