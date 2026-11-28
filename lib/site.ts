@@ -5,6 +5,12 @@ export const SITE_URL = "https://omviewer.com";
 
 export const SITE_NAME = "OM Recipe Viewer";
 
+/** The name under a home screen icon. Phones cut labels off after about 12 characters. */
+export const SITE_SHORT_NAME = "OM Viewer";
+
+/** The header's black. Browsers that tint their toolbar to match the page use it. */
+export const THEME_COLOR = "#000000";
+
 export const SITE_DESCRIPTION =
   "See the Color Profile, Monochrome Profile and picture settings stored in an OM System JPEG. Runs entirely in your browser.";
 

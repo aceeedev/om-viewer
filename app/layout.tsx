@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Geist_Mono } from "next/font/google";
-import { AUTHOR, SITE_DESCRIPTION, SITE_NAME, SITE_URL, TITLE_TEMPLATE } from "@/lib/site";
+import { AUTHOR, SITE_DESCRIPTION, SITE_NAME, SITE_SHORT_NAME, SITE_URL, THEME_COLOR, TITLE_TEMPLATE } from "@/lib/site";
 import { SiteFooter, SiteHeader } from "./_components/site-chrome";
 import "./globals.css";
 
@@ -27,11 +27,15 @@ export const metadata: Metadata = {
   authors: [AUTHOR],
   creator: AUTHOR.name,
   twitter: { card: "summary_large_image" },
+  // The name under the icon when the site is added to an iPhone's home screen.
+  appleWebApp: { title: SITE_SHORT_NAME },
 };
 
-// The site is light only, so browsers draw form controls and scrollbars light too.
 export const viewport: Viewport = {
+  // The site is light only, so browsers draw form controls and scrollbars light too.
   colorScheme: "light",
+  // Browsers that tint their toolbar to match the page blend it into the black header.
+  themeColor: THEME_COLOR,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
