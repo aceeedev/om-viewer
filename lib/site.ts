@@ -5,6 +5,12 @@ export const SITE_URL = "https://omviewer.com";
 
 export const SITE_NAME = "OM Recipe Viewer";
 
+/** The name under a home screen icon. Phones cut labels off after about 12 characters. */
+export const SITE_SHORT_NAME = "OM Viewer";
+
+/** The header's black. Browsers that tint their toolbar to match the page use it. */
+export const THEME_COLOR = "#000000";
+
 export const SITE_DESCRIPTION =
   "See the Color Profile, Monochrome Profile and picture settings stored in an OM System JPEG. Runs entirely in your browser.";
 
@@ -15,6 +21,11 @@ export const AUTHOR = {
 
 export const REPO_URL = "https://github.com/aceeedev/om-viewer";
 export const REPO_ISSUES_URL = `${REPO_URL}/issues`;
+
+/** GitHub's private vulnerability report form for the repo (turned on in its settings). */
+export const SECURITY_REPORT_URL = `${REPO_URL}/security/advisories/new`;
+/** The repo's SECURITY.md, as GitHub shows it. */
+export const SECURITY_POLICY_URL = `${REPO_URL}/blob/main/SECURITY.md`;
 
 /**
  * The social preview image drawn by app/opengraph-image.tsx. Listed on every page by pageMetadata(): Next

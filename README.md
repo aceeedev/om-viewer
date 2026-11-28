@@ -33,7 +33,7 @@ Then open http://localhost:3000.
 | `pnpm typecheck` | Check types with TypeScript          |
 | `pnpm test`      | Run the tests                        |
 
-Every pull request and push to `main` runs lint, the type check, the tests and the build on GitHub Actions. Pull requests that only change `README.md`, `LICENSE`, `AGENTS.md` or the issue templates in `.github/ISSUE_TEMPLATE/` skip them.
+Every pull request and push to `main` runs lint, the type check, the tests and the build on GitHub Actions. Pull requests that only change `README.md`, `SECURITY.md`, `LICENSE`, `AGENTS.md` or the issue templates in `.github/ISSUE_TEMPLATE/` skip them.
 
 Some tests compare the parser's output with [ExifTool](https://exiftool.org) on real photos. To run them, install ExifTool and put JPEGs in a `samples/` folder at the project root. These tests are skipped otherwise. The folder is ignored by git, because photos carry camera and lens serial numbers.
 
