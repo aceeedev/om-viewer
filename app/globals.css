@@ -54,6 +54,16 @@
   font-size: calc(--value(number) * 1px * var(--screen-text-boost, 1));
 }
 
+/*
+ * Black like the header and footer (THEME_COLOR in lib/site.ts): what browsers show when you scroll
+ * past the top or bottom of the page, and in any strip around the page that a phone fills in itself.
+ * The white is the body's own. The body is always at least the screen's height, and the page's main
+ * pushes the footer to its bottom, so the black never shows between the header and footer.
+ */
+html {
+  background: #000;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
