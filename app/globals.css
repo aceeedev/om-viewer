@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+/*
+ * Phones: a touchscreen whose short side is under 600px, in either orientation. Tablets are wider
+ * than that both ways, and computers (touch laptops too) have a mouse or trackpad, so they keep
+ * the drag-and-drop wording. Both wordings are in the page and CSS picks one, so the page stays
+ * static and nothing changes after it loads.
+ */
+@custom-variant phone {
+  @media (pointer: coarse) and (width < 600px), (pointer: coarse) and (height < 600px) {
+    @slot;
+  }
+}
+
 /* The site is light only. */
 :root {
   --background: #ffffff;
