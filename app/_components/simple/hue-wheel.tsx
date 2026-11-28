@@ -32,6 +32,7 @@ export function HueWheel({ hues }: { hues: HueSaturation[] }) {
 
   return (
     <div>
+      <h3 className="sr-only">Color Profile Control</h3>
       <div className={`relative ${SCREEN}`}>
         <div aria-hidden="true" style={fill} />
         <svg

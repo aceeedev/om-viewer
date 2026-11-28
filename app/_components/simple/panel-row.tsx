@@ -6,9 +6,19 @@ export interface UnverifiedNote {
   why: string;
 }
 
-/** The asterisk after an unverified setting's label, on a dark screen. */
+/**
+ * The asterisk after an unverified setting's label, on a dark screen. Screen readers would read it
+ * as "star", so they get the word "unverified" instead.
+ */
 export function UnverifiedMark() {
-  return <span className="text-amber-400">*</span>;
+  return (
+    <>
+      <span aria-hidden="true" className="text-amber-400">
+        *
+      </span>
+      <span className="sr-only"> (unverified)</span>
+    </>
+  );
 }
 
 /**
@@ -32,7 +42,7 @@ export function PanelRow({ notes = [], children }: { notes?: UnverifiedNote[]; c
       </div>
       {notes.map((n) => (
         <p key={n.label} className="text-xs text-amber-700">
-          * {n.label} is unverified: {n.why}
+          <span aria-hidden="true">*</span> {n.label} is unverified: {n.why}
         </p>
       ))}
     </div>

@@ -11,14 +11,46 @@ import { LoadError, RecipeViewer } from "../recipe-viewer";
 import { pictureModeName, profileSections } from "../sections";
 import { SimpleView } from "../simple-view";
 
-/** Rendered text with tags stripped and whitespace collapsed. */
-function text(element: React.ReactElement): string {
-  return renderToStaticMarkup(element)
+/** Markup as text: tags stripped and whitespace collapsed. */
+function plain(html: string): string {
+  return html
     .replace(/<[^>]+>/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&#x27;|&apos;/g, "'")
     .replace(/&quot;/g, '"')
     .replace(/\s+/g, " ");
+}
+
+/** Rendered text with tags stripped and whitespace collapsed. */
+function text(element: React.ReactElement): string {
+  return plain(renderToStaticMarkup(element));
+}
+
+/**
+ * The markup without the elements marked aria-hidden, or anything inside them: what a screen
+ * reader can reach. React closes every element but the void ones, which end in "/>".
+ */
+function withoutHidden(html: string): string {
+  const open: boolean[] = []; // for each element we're inside, whether it's hidden
+  return html.replace(/<(\/?)[a-zA-Z][^>]*?(\/?)>|[^<]+/g, (token, closing: string, selfClosing: string) => {
+    const inHidden = open.includes(true);
+    if (!token.startsWith("<")) return inHidden ? "" : token;
+    if (closing) return open.pop() || inHidden ? "" : token;
+    const hides = /\saria-hidden="true"/.test(token);
+    if (!selfClosing) open.push(hides);
+    return inHidden || hides ? "" : token;
+  });
+}
+
+/** What a screen reader reads, with whitespace collapsed. */
+function spoken(element: React.ReactElement): string {
+  return plain(withoutHidden(renderToStaticMarkup(element)));
+}
+
+/** Each heading as "level text", e.g. "3 White balance". */
+function headings(element: React.ReactElement): string[] {
+  const html = renderToStaticMarkup(element);
+  return [...html.matchAll(/<h([1-6])[^>]*>(.*?)<\/h\1>/g)].map(([, level, inner]) => `${level} ${plain(inner).trim()}`);
 }
 
 function syntheticRecipe(overrides: Field[]): Recipe {
@@ -197,7 +229,9 @@ describe("SimpleView", () => {
     const t = text(<SimpleView recipe={recipe} />);
     expect(t).toContain("Picture mode Color Creator");
     // For screen readers, then across the top of the screen as on the tone screen.
-    expect(t).toContain("Color Creator Hue * 12 (0 to 29) Saturation +2 (−4 to +3) Hue * 12 Saturation +2");
+    expect(t).toContain("Color Creator Hue * (unverified) 12 (0 to 29) Saturation +2 (−4 to +3) Hue * 12 Saturation +2");
+    // A screen reader hears "unverified", not the asterisk.
+    expect(spoken(<SimpleView recipe={recipe} />)).toContain("Color Creator Hue (unverified) 12 (0 to 29) Saturation +2 (−4 to +3) Highlight");
     // 30 colored steps (and the white balance box's 4 edges); step 12 is 144° clockwise, saturation +2 of −4..+3 is 6/7 of the way
     // from the inner ring (18.4) to just inside the outline (80): 71.2.
     expect(html.match(/<polygon points="[^"]*" fill="#[0-9a-f]{6}"/g)).toHaveLength(34);
@@ -233,9 +267,15 @@ describe("SimpleView", () => {
   });
 
   it("marks a gradation the camera flagged as auto-overridden", () => {
-    const t = text(<SimpleView recipe={syntheticRecipe([mode(2), { tag: 0x050f, type: "s16", value: [1, -1, 1, 1] }])} />);
-    expect(t).toContain("Gradation * High Key");
+    const flagged = <SimpleView recipe={syntheticRecipe([mode(2), { tag: 0x050f, type: "s16", value: [1, -1, 1, 1] }])} />;
+    const t = text(flagged);
+    expect(t).toContain("Gradation * (unverified) High Key");
     expect(t).toContain('* Gradation is unverified: the camera flagged it "Auto-Override"');
+    // A screen reader hears "unverified", not the asterisk, in the row and in the note under it.
+    const heard = spoken(flagged);
+    expect(heard).toContain("Gradation (unverified) High Key (Low Key, Normal, High Key)");
+    expect(heard).toContain('Gradation is unverified: the camera flagged it "Auto-Override"');
+    expect(heard).not.toContain("*");
     expect(text(<SimpleView recipe={syntheticRecipe([mode(2)])} />)).not.toContain("unverified");
   });
 
@@ -301,9 +341,37 @@ describe("SimpleView", () => {
       expect(html, `mode ${id}`).toContain("Exposure Comp");
     }
   });
+
+  it("gives every screen a heading of its own, under the picture mode's", () => {
+    expect(headings(<SimpleView recipe={syntheticRecipe([mode(9)])} />)).toEqual([
+      "2 Color Profile 1",
+      "3 Color Profile Control",
+      "3 Highlight & Shadow",
+      "3 White balance",
+      "3 Settings",
+    ]);
+    const creator = syntheticRecipe([mode(7), { tag: 0x0532, type: "s16", value: [12, 0, 29, 2, -4, 3] }]);
+    const modes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 17, 18, 256, 512, 99].map((id) => syntheticRecipe([mode(id)]));
+    for (const recipe of [...modes, creator]) {
+      const view = <SimpleView recipe={recipe} />;
+      const name = recipe.profile.mode.label;
+      const screens = renderToStaticMarkup(view).match(/rounded-xl bg-screen screen-scale/g) ?? [];
+      const [title, ...rest] = headings(view);
+      expect(title, name).toMatch(/^2 /);
+      expect(rest.length, name).toBe(screens.length);
+      for (const h of rest) expect(h, name).toMatch(/^3 /);
+    }
+  });
 });
 
 describe("FullView", () => {
+  it("heads each section at the level the Simple view heads its picture mode", () => {
+    const found = headings(<FullView recipe={syntheticRecipe([mode(9)])} />);
+    expect(found).toContain("2 Maker notes");
+    expect(found.length).toBeGreaterThan(1);
+    for (const h of found) expect(h).toMatch(/^2 /);
+  });
+
   it("gives every picture mode at least one section", () => {
     for (const id of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 17, 18, 256, 512]) {
       const recipe = syntheticRecipe([mode(id)]);

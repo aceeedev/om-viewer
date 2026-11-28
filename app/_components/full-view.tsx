@@ -19,7 +19,7 @@ function RawTable({ raw }: { raw: RawSetting[] }) {
   const cell = "py-1.5 pr-3 first:pl-4 last:pr-4";
   return (
     <section className="flex flex-col gap-3">
-      <h3 className={SECTION_TITLE}>Maker notes</h3>
+      <h2 className={SECTION_TITLE}>Maker notes</h2>
       <details className={`group text-sm ${CARD}`}>
         <summary
           className={

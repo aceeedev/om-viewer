@@ -10,7 +10,7 @@ export const CARD = "overflow-hidden rounded-md border border-zinc-200 bg-white"
 export function SettingsTable({ section }: { section: Section }) {
   return (
     <section className="flex flex-col gap-3">
-      <h3 className={SECTION_TITLE}>{section.title}</h3>
+      <h2 className={SECTION_TITLE}>{section.title}</h2>
       <div className={CARD}>
         <table className="w-full border-collapse text-sm">
           <tbody>
