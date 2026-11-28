@@ -40,7 +40,7 @@ describe("DropZone", () => {
 
   it("asks phones to open a photo instead, with the same button", () => {
     const html = render();
-    expect(classOf(html, "Open an OM System JPEG")).toMatch(/(^| )hidden phone:block( |$)/);
+    expect(classOf(html, "Open an OM System JPEG")).toMatch(/(^| )hidden phone:inline( |$)/);
     expect(classOf(html, "Choose a photo")).not.toContain("phone:");
     expect(classOf(render({ compact: true }), "Open another photo")).not.toContain("phone:");
   });

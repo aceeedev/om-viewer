@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildOmJpeg } from "@/lib/exif/__tests__/helpers/build-jpeg";
 import { readPhotoMetadata } from "@/lib/exif";
-import { fetchImageFromUrl, fileNameFrom, MAX_IMAGE_BYTES, STALL_TIMEOUT_MS } from "../fetch-image";
+import { fetchImageFromUrl, fileNameFrom, MAX_IMAGE_BYTES, STALL_TIMEOUT_MS, type FetchImageError } from "../fetch-image";
 
 /** Answer every fetch() with this response (or throw this error), and record what was asked. */
 function stubFetch(answer: Response | Error) {
@@ -29,6 +29,12 @@ function stubHungFetch() {
 
 const jpeg = (headers: HeadersInit = { "content-type": "image/jpeg" }) =>
   new Response(new Uint8Array(buildOmJpeg()), { status: 200, headers });
+
+/** A message that says to drop the photo, with a phone version that's the same but says to open it. */
+function expectPhoneWording(error: FetchImageError) {
+  expect(error.message).toMatch(/download the photo and drop it here instead\.$/i);
+  expect(error.phoneMessage).toBe(error.message.replace("drop it here", "open it here"));
+}
 
 async function errorCode(url: string) {
   const result = await fetchImageFromUrl(url);
@@ -91,7 +97,13 @@ describe("fetchImageFromUrl", () => {
     stubFetch(new TypeError("Failed to fetch"));
     const result = await fetchImageFromUrl("https://example.com/a.jpg");
     expect(result).toMatchObject({ ok: false, error: { code: "blocked" } });
-    if (!result.ok) expect(result.error.message).toContain("drop it here instead");
+    if (!result.ok) expectPhoneWording(result.error);
+  });
+
+  it("keeps one wording for messages that don't mention dropping", async () => {
+    const result = await fetchImageFromUrl("not a link");
+    expect(result).toMatchObject({ ok: false, error: { code: "invalid-url" } });
+    if (!result.ok) expect(result.error.phoneMessage).toBeUndefined();
   });
 
   it("stops when its signal aborts", async () => {
@@ -107,7 +119,9 @@ describe("fetchImageFromUrl", () => {
     stubHungFetch();
     const pending = fetchImageFromUrl("https://example.com/a.jpg");
     await vi.advanceTimersByTimeAsync(STALL_TIMEOUT_MS);
-    expect(await pending).toMatchObject({ ok: false, error: { code: "timeout" } });
+    const result = await pending;
+    expect(result).toMatchObject({ ok: false, error: { code: "timeout" } });
+    if (!result.ok) expectPhoneWording(result.error);
   });
 
   it("gives up when the download stalls partway, rather than returning half a photo", async () => {

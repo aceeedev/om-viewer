@@ -16,9 +16,9 @@ interface DropZoneProps {
 const FOCUS_RING = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black";
 
 /** Wording about dropping a file, which phones can't do. Hidden there (see `phone` in globals.css). */
-const DROP_WORDING = "phone:hidden";
+export const DROP_WORDING = "phone:hidden";
 /** What phones show in its place. */
-const PHONE_WORDING = "hidden phone:block";
+export const PHONE_WORDING = "hidden phone:inline";
 
 /**
  * File picker styled as a drop target, with a solid button like OM System's own pages but faintly

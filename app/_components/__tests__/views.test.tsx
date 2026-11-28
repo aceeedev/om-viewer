@@ -7,7 +7,7 @@ import { buildOmJpeg, sampleCameraSettings, type Field } from "@/lib/exif/__test
 import { buildRecipe, type Recipe } from "@/lib/recipe";
 import { SAMPLES_DIR, sampleFiles } from "@/lib/test-utils/samples";
 import { FullView } from "../full-view";
-import { RecipeViewer } from "../recipe-viewer";
+import { LoadError, RecipeViewer } from "../recipe-viewer";
 import { pictureModeName, profileSections } from "../sections";
 import { SimpleView } from "../simple-view";
 
@@ -320,6 +320,20 @@ describe("RecipeViewer", () => {
     expect(html).toContain('type="file"');
     expect(html).toContain('accept="image/jpeg,.jpg,.jpeg"');
     expect(text(<RecipeViewer />)).toContain("Drop an OM System JPEG here");
+  });
+});
+
+describe("LoadError", () => {
+  it("has both wordings when phones get their own, one hidden on phones and the other only on phones", () => {
+    const html = renderToStaticMarkup(<LoadError fileName="a.jpg" message="Drop it here." phoneMessage="Open it here." />);
+    expect(html).toContain('<span class="phone:hidden">Drop it here.</span>');
+    expect(html).toContain('<span class="hidden phone:inline">Open it here.</span>');
+  });
+
+  it("shows a message phones share as plain text after the file name", () => {
+    const error = <LoadError fileName="notes.txt" message="This file isn't a JPEG." />;
+    expect(renderToStaticMarkup(error)).not.toContain("phone:");
+    expect(text(error).trim()).toBe("notes.txt: This file isn't a JPEG.");
   });
 });
 
