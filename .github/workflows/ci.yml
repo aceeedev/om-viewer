@@ -40,7 +40,7 @@ jobs:
             files=$(git diff --name-only HEAD^1 HEAD)
             echo "Files this pull request changes:"
             echo "$files"
-            if ! grep -qvxE 'README\.md|LICENSE|AGENTS\.md|\.github/ISSUE_TEMPLATE/.+' <<< "$files"; then
+            if ! grep -qvxE 'README\.md|SECURITY\.md|LICENSE|AGENTS\.md|\.github/ISSUE_TEMPLATE/.+' <<< "$files"; then
               code=false
               echo "Only docs changed, so the checks are skipped."
             fi
