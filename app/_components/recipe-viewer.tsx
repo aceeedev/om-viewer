@@ -34,6 +34,10 @@ export function RecipeViewer() {
   const [dragging, setDragging] = useState(false);
   /** The photo being opened. Aborted when another one replaces it, so stale results are dropped. */
   const inFlight = useRef<AbortController | null>(null);
+  /** What had focus when the photo was opened: the control used, to go back to if it fails. */
+  const openedFrom = useRef<Element | null>(null);
+  const fileNameRef = useRef<HTMLParagraphElement>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   // Free the preview's object URL when it's replaced or the viewer unmounts.
   const previewUrl = state.status === "ready" ? state.previewUrl : null;
@@ -47,6 +51,7 @@ export function RecipeViewer() {
       inFlight.current?.abort(); // stops a link that's still downloading
       const controller = new AbortController();
       inFlight.current = controller;
+      openedFrom.current = document.activeElement;
       setState({ status: "reading", fileName: label, ...origin });
       const result = await load(controller.signal);
       if (controller.signal.aborted) return; // a newer photo was opened meanwhile, or the viewer unmounted
@@ -94,6 +99,25 @@ export function RecipeViewer() {
 
   useEffect(() => () => inFlight.current?.abort(), []);
 
+  // Opening a photo loses keyboard focus: the control used is disabled while the photo is read, and
+  // "Open another photo" goes away with the photo it was under. Put focus where it's useful once the
+  // photo is read: on its name, at the top of what opened (without scrolling, so the photo stays
+  // put), or back on the control if it failed. Not if the visitor has moved focus meanwhile.
+  useEffect(() => {
+    if (state.status !== "ready" && state.status !== "error") return;
+    if (document.activeElement && document.activeElement !== document.body) return;
+    if (state.status === "ready") {
+      fileNameRef.current?.focus({ preventScroll: true });
+      return;
+    }
+    const from = openedFrom.current;
+    const control =
+      from instanceof HTMLElement && from.isConnected
+        ? from
+        : pickerRef.current?.querySelector<HTMLElement>(state.url ? 'input[type="url"]' : 'input[type="file"]');
+    control?.focus();
+  }, [state]);
+
   // Accept files dropped anywhere on the page (and stop the browser from opening them).
   useEffect(() => {
     let depth = 0;
@@ -133,27 +157,38 @@ export function RecipeViewer() {
     };
   }, [openFile]);
 
+  // Read out while the photo is read and once it's open. Errors are read out by LoadError. The same
+  // element in both layouts below, so it stays in the page and screen readers notice it change.
+  const status = (
+    <p role="status" className="sr-only">
+      {state.status === "reading" ? "Reading…" : state.status === "ready" ? `Opened ${state.fileName}` : ""}
+    </p>
+  );
+
   if (state.status !== "ready") {
     return (
-      <div className="flex flex-col gap-4">
-        <DropZone
-          onFile={openFile}
-          onUrl={openUrl}
-          dragging={dragging}
-          busy={state.status === "reading"}
-          initialUrl={state.status === "idle" ? undefined : state.url}
-        />
-        {state.status === "error" && (
-          <LoadError fileName={state.fileName} message={state.message} phoneMessage={state.phoneMessage} />
-        )}
-        <div className="flex flex-col items-center gap-3 pt-4 text-center">
-          <div className="flex flex-col items-center gap-x-4 gap-y-2 sm:flex-row">
-            <span className="text-sm text-zinc-600">No OM System photo at hand?</span>
-            <TrySampleButton onTry={openSample} busy={state.status === "reading"} />
+      <>
+        {status}
+        <div ref={pickerRef} className="flex flex-col gap-4">
+          <DropZone
+            onFile={openFile}
+            onUrl={openUrl}
+            dragging={dragging}
+            busy={state.status === "reading"}
+            initialUrl={state.status === "idle" ? undefined : state.url}
+          />
+          {state.status === "error" && (
+            <LoadError fileName={state.fileName} message={state.message} phoneMessage={state.phoneMessage} />
+          )}
+          <div className="flex flex-col items-center gap-3 pt-4 text-center">
+            <div className="flex flex-col items-center gap-x-4 gap-y-2 sm:flex-row">
+              <span className="text-sm text-zinc-600">No OM System photo at hand?</span>
+              <TrySampleButton onTry={openSample} busy={state.status === "reading"} />
+            </div>
+            <SampleSourceNote />
           </div>
-          <SampleSourceNote />
         </div>
-      </div>
+      </>
     );
   }
 
@@ -162,43 +197,49 @@ export function RecipeViewer() {
   const summary = exposureSummary(recipe);
 
   return (
-    // Wide screens: the photo and its details on the left, staying in view while the recipe on the
-    // right scrolls. Narrow screens: the photo on top, the recipe below.
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-      <div className="flex flex-col gap-4 lg:sticky lg:top-8 lg:self-start">
-        {/* A local blob: URL, so next/image's optimizer has nothing to do here. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={state.previewUrl}
-          alt={sample ? `Sample photo “${sample.title}” by ${sample.artist}` : `Preview of ${fileName}`}
-          className="max-h-[70vh] w-full rounded-md bg-zinc-100 object-contain"
-        />
-        <header className="flex flex-col gap-1">
-          <p className="break-all font-mono text-sm text-zinc-500">{fileName}</p>
-          {cameraLine && <p className="font-medium">{cameraLine}</p>}
-          {summary && <p className="text-sm text-zinc-600">{summary}</p>}
-          {sample && (
-            <div className="pt-1">
-              <SampleCredit photo={sample} />
-            </div>
-          )}
-        </header>
-        <DropZone onFile={openFile} onUrl={openUrl} dragging={dragging} compact />
-      </div>
-
-      <div className="flex min-w-0 flex-col gap-6">
-        <div role="group" aria-label="View" className="flex gap-8 border-b border-zinc-200">
-          <ViewButton current={view} value="simple" onSelect={setView}>
-            Simple
-          </ViewButton>
-          <ViewButton current={view} value="full" onSelect={setView}>
-            Full details
-          </ViewButton>
+    <>
+      {status}
+      {/* Wide screens: the photo and its details on the left, staying in view while the recipe on
+          the right scrolls. Narrow screens: the photo on top, the recipe below. */}
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+        <div className="flex flex-col gap-4 lg:sticky lg:top-8 lg:self-start">
+          {/* A local blob: URL, so next/image's optimizer has nothing to do here. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={state.previewUrl}
+            alt={sample ? `Sample photo “${sample.title}” by ${sample.artist}` : `Preview of ${fileName}`}
+            className="max-h-[70vh] w-full rounded-md bg-zinc-100 object-contain"
+          />
+          <header className="flex flex-col gap-1">
+            {/* Focus lands here once the photo opens (see above). It's not a control, so no outline. */}
+            <p ref={fileNameRef} tabIndex={-1} className="break-all font-mono text-sm text-zinc-500 outline-none">
+              {fileName}
+            </p>
+            {cameraLine && <p className="font-medium">{cameraLine}</p>}
+            {summary && <p className="text-sm text-zinc-600">{summary}</p>}
+            {sample && (
+              <div className="pt-1">
+                <SampleCredit photo={sample} />
+              </div>
+            )}
+          </header>
+          <DropZone onFile={openFile} onUrl={openUrl} dragging={dragging} compact />
         </div>
 
-        {view === "simple" ? <SimpleView recipe={recipe} /> : <FullView recipe={recipe} />}
+        <div className="flex min-w-0 flex-col gap-6">
+          <div role="group" aria-label="View" className="flex gap-8 border-b border-zinc-200">
+            <ViewButton current={view} value="simple" onSelect={setView}>
+              Simple
+            </ViewButton>
+            <ViewButton current={view} value="full" onSelect={setView}>
+              Full details
+            </ViewButton>
+          </div>
+
+          {view === "simple" ? <SimpleView recipe={recipe} /> : <FullView recipe={recipe} />}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

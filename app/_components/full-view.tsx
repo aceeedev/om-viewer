@@ -43,7 +43,14 @@ function RawTable({ raw }: { raw: RawSetting[] }) {
           <p className="px-4 py-3 text-xs text-zinc-500">
             Every entry in the camera&apos;s CameraSettings maker-note block, as stored. Names follow ExifTool.
           </p>
-          <div className="overflow-x-auto">
+          {/* Long names can make the table scroll sideways on a phone. Focusable so a keyboard can
+              scroll it too: some browsers (Safari) don't make scrolling boxes focusable on their own. */}
+          <div
+            role="region"
+            aria-label="Maker-note values"
+            tabIndex={0}
+            className="overflow-x-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-black"
+          >
             <table className="w-full border-collapse font-mono text-xs">
               <thead>
                 <tr className="border-y border-zinc-200 bg-zinc-50 text-left text-zinc-500">

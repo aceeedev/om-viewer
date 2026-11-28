@@ -394,6 +394,11 @@ describe("FullView", () => {
     expect(t).toMatch(/All maker-note values \(\d+\)/);
     expect(t).toContain("0x0539 ColorProfileSettings int16s[14] -5 5 4 4 4 4 0 -1 1 4 4 4 4 1");
   });
+
+  it("lets a keyboard reach the raw table's sideways scroll", () => {
+    const html = renderToStaticMarkup(<FullView recipe={syntheticRecipe([])} />);
+    expect(html).toMatch(/<div role="region" aria-label="Maker-note values" tabindex="0" class="overflow-x-auto focus-visible:outline-2 [^"]*"><table/);
+  });
 });
 
 describe("RecipeViewer", () => {
@@ -402,6 +407,10 @@ describe("RecipeViewer", () => {
     expect(html).toContain('type="file"');
     expect(html).toContain('accept="image/jpeg,.jpg,.jpeg"');
     expect(text(<RecipeViewer />)).toContain("Drop an OM System JPEG here");
+  });
+
+  it("starts with an empty status line, there from the start so screen readers read out what's put in it", () => {
+    expect(renderToStaticMarkup(<RecipeViewer />)).toMatch(/^<p role="status" class="sr-only"><\/p>/);
   });
 });
 
