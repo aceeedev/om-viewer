@@ -19,6 +19,13 @@ export const AUTHOR = {
   url: "https://www.linkedin.com/in/andrew-michael-collins/",
 } as const;
 
+/**
+ * The Google Analytics 4 measurement ID ("G-…"), from NEXT_PUBLIC_GA_ID when the site is built. It's set
+ * in Vercel's Production environment only, so preview deploys and local builds never count visits.
+ * Without it the site has no analytics at all.
+ */
+export const GA_MEASUREMENT_ID: string | undefined = process.env.NEXT_PUBLIC_GA_ID?.trim() || undefined;
+
 export const REPO_URL = "https://github.com/aceeedev/om-viewer";
 export const REPO_ISSUES_URL = `${REPO_URL}/issues`;
 
