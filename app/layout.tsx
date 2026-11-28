@@ -38,8 +38,13 @@ export const metadata: Metadata = {
   authors: [AUTHOR],
   creator: AUTHOR.name,
   twitter: { card: "summary_large_image" },
-  // The name under the icon when the site is added to an iPhone's home screen.
-  appleWebApp: { title: SITE_SHORT_NAME },
+  appleWebApp: {
+    // The name under the icon when the site is added to an iPhone's home screen.
+    title: SITE_SHORT_NAME,
+    // Opened from there, the page runs up under the status bar, which turns its text white to sit on
+    // the black header. SiteHeader keeps that strip black once the header scrolls away.
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {
@@ -47,6 +52,11 @@ export const viewport: Viewport = {
   colorScheme: "light",
   // Browsers that tint their toolbar to match the page blend it into the black header.
   themeColor: THEME_COLOR,
+  // On phones, the page runs to the screen's edges, under the status bar, the notch and the home
+  // indicator, so the black header and footer fill those strips instead of the phone filling them
+  // white. Wherever something covers the page, the header, footer, page column and cookie banner
+  // pad themselves clear of it with env(safe-area-inset-*), which is 0 everywhere else.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -6,8 +6,12 @@ import { CookieSettingsButton } from "./cookie-settings-button";
 /** The site's name as a wordmark: Archivo, wide and extra-bold. */
 const WORDMARK = "font-extrabold font-stretch-expanded";
 
-/** One centered column, the same width in the header, the page and the footer. */
-export const CONTAINER = "mx-auto w-full max-w-6xl px-6";
+/**
+ * One centered column, the same width in the header, the page and the footer. Its sides are padded
+ * 1.5rem, or more on a phone held sideways, to keep clear of the notch.
+ */
+export const CONTAINER =
+  "mx-auto w-full max-w-6xl pl-[max(--spacing(6),env(safe-area-inset-left))] pr-[max(--spacing(6),env(safe-area-inset-right))]";
 
 /** A white focus outline, for links on the black header and footer. */
 const FOCUS_RING_ON_BLACK =
@@ -26,10 +30,14 @@ const FOOTER_LINKS = [
 /**
  * The black bar along the top: the site's name linking home on the left, About on the right. The home
  * link is a plain link, not next/link: a full load is what clears the viewer back to its empty state.
+ *
+ * Where the phone's status bar covers the top of the page, the bar reaches up behind it, and a strip
+ * fixed behind the status bar keeps it black after the header scrolls away. Elsewhere the strip is 0px tall.
  */
 export function SiteHeader() {
   return (
-    <header className="bg-black text-white">
+    <header className="bg-black pt-[env(safe-area-inset-top)] text-white">
+      <div aria-hidden className="fixed inset-x-0 top-0 z-50 h-[env(safe-area-inset-top)] bg-black" />
       <div className={`${CONTAINER} flex h-14 items-center justify-between gap-6`}>
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- a full load is the point: it resets the viewer */}
         <a href="/" className={`${WORDMARK} text-lg ${FOCUS_RING_ON_BLACK}`}>
@@ -65,11 +73,11 @@ export function PageIntro({ title, children }: { title: ReactNode; children?: Re
 /**
  * The black band along the bottom: the site's name with the note that it's unofficial under it, and
  * links to the site's other pages beside them (below them on narrow screens). Cookie settings is
- * there too when the site has analytics.
+ * there too when the site has analytics. On a phone, it reaches down behind the home indicator.
  */
 export function SiteFooter() {
   return (
-    <footer className="bg-black text-sm text-white/70">
+    <footer className="bg-black pb-[env(safe-area-inset-bottom)] text-sm text-white/70">
       <div className={`${CONTAINER} flex flex-col gap-6 py-8 sm:flex-row sm:items-start sm:justify-between`}>
         <div className="flex max-w-md flex-col gap-2">
           <p className={`${WORDMARK} text-white`}>OM Recipe Viewer</p>
