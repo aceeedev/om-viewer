@@ -10,6 +10,8 @@ import { FullView } from "../full-view";
 import { LoadError, RecipeViewer } from "../recipe-viewer";
 import { pictureModeName, profileSections } from "../sections";
 import { SimpleView } from "../simple-view";
+import { DIMMED_TEXT } from "../simple/panel-column";
+import { SCREEN_BACKGROUND, WHITE, contrast, hex, over, themeColor, type Rgb } from "./helpers/contrast";
 
 /** Markup as text: tags stripped and whitespace collapsed. */
 function plain(html: string): string {
@@ -361,6 +363,77 @@ describe("SimpleView", () => {
       expect(rest.length, name).toBe(screens.length);
       for (const h of rest) expect(h, name).toMatch(/^3 /);
     }
+  });
+});
+
+describe("text on the camera screens", () => {
+  /** Each camera screen's markup: every element with the screen's background, through its closing tag. */
+  function screens(html: string): string[] {
+    const found: string[] = [];
+    for (const start of html.matchAll(/<[a-z]+\b[^>]*\bbg-screen\b[^>]*>/g)) {
+      const tags = /<(\/?)[a-zA-Z][^>]*?(\/?)>/g;
+      tags.lastIndex = start.index;
+      let depth = 0;
+      for (const tag of html.matchAll(tags)) {
+        if (!tag[2]) depth += tag[1] ? -1 : 1;
+        if (depth === 0) {
+          found.push(html.slice(start.index, tag.index + tag[0].length));
+          break;
+        }
+      }
+    }
+    return found;
+  }
+
+  /**
+   * Every color text is drawn in on a screen, by how it's set: SVG text (white unless its fill says
+   * otherwise, faded by fill-opacity), or a text or fill class like "text-white/65" or "fill-amber-400".
+   */
+  function textColors(screen: string): Map<string, Rgb> {
+    const colors = new Map<string, Rgb>();
+    const named = (name: string): Rgb => (name === "white" ? WHITE : name === "black" ? [0, 0, 0] : themeColor(name));
+    for (const [, attrs] of screen.matchAll(/<text\b([^>]*)>/g)) {
+      const fill = /\sfill="([^"]+)"/.exec(attrs)?.[1] ?? "white"; // inherited from a <g fill="white">
+      const alpha = Number(/\sfill-opacity="([\d.]+)"/.exec(attrs)?.[1] ?? 1);
+      colors.set(`<text fill="${fill}" fill-opacity="${alpha}">`, over(fill.startsWith("#") ? hex(fill) : named(fill), alpha, SCREEN_BACKGROUND));
+    }
+    for (const [, classes] of screen.matchAll(/\sclass="([^"]*)"/g)) {
+      for (const token of classes.split(/\s+/)) {
+        const m = /^(?:text|fill)-(white|black|[a-z]+-\d{2,3})(?:\/(\d+))?$/.exec(token);
+        if (m) colors.set(token, over(named(m[1]), m[2] ? Number(m[2]) / 100 : 1, SCREEN_BACKGROUND));
+      }
+    }
+    return colors;
+  }
+
+  it("measures contrast as WCAG does", () => {
+    expect(contrast(WHITE, [0, 0, 0])).toBeCloseTo(21);
+    expect(contrast(hex("#767676"), WHITE)).toBeCloseTo(4.54, 2); // the lightest gray that passes on white
+    expect(contrast(themeColor("zinc-500"), WHITE)).toBeGreaterThan(4.5);
+    expect(contrast(themeColor("zinc-400"), WHITE)).toBeLessThan(3);
+  });
+
+  it("keeps every color of text on a screen at 4.5:1 or more against it (WCAG AA)", () => {
+    const recipes = [
+      ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 17, 18, 256, 512, 99].map((id) => syntheticRecipe([mode(id)])),
+      // Color Creator's ring, the filter wheel with a filter in use, an unverified gradation, and a
+      // fine-tune toward blue and magenta.
+      syntheticRecipe([mode(7), { tag: 0x0532, type: "s16", value: [12, 0, 29, 2, -4, 3] }]),
+      syntheticRecipe([mode(12), { tag: 0x0537, type: "s16", value: [3, 0, 8, 3, 0, 3] }, { tag: 0x053b, type: "s16", value: [2] }]),
+      syntheticRecipe([mode(2), { tag: 0x050f, type: "s16", value: [1, -1, 1, 1] }]),
+      syntheticRecipe([mode(12), { tag: 0x0502, type: "s16", value: [-3, -1] }]),
+    ];
+    const ratios = new Map<string, number>();
+    for (const recipe of recipes) {
+      for (const screen of screens(renderToStaticMarkup(<SimpleView recipe={recipe} />))) {
+        for (const [how, color] of textColors(screen)) ratios.set(how, contrast(color, SCREEN_BACKGROUND));
+      }
+    }
+    // The dimmed names and letters, the settings' labels and the asterisk are all among them.
+    expect([...ratios.keys()]).toEqual(
+      expect.arrayContaining([`<text fill="white" fill-opacity="${DIMMED_TEXT}">`, "text-white/65", "text-amber-400", "fill-amber-400"]),
+    );
+    for (const [how, ratio] of ratios) expect(ratio, how).toBeGreaterThanOrEqual(4.5);
   });
 });
 

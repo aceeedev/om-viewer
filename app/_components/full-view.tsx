@@ -64,7 +64,7 @@ function RawTable({ raw }: { raw: RawSetting[] }) {
                 {raw.map((entry) => (
                   <tr key={entry.tag} className="align-top not-first:border-t not-first:border-zinc-100">
                     <td className={cell}>{entry.id}</td>
-                    <td className={cell}>{entry.name ?? <span className="text-zinc-400">unknown</span>}</td>
+                    <td className={cell}>{entry.name ?? <span className="text-zinc-500">unknown</span>}</td>
                     <td className={`${cell} whitespace-nowrap`}>
                       {entry.type}
                       {entry.count > 1 ? `[${entry.count}]` : ""}

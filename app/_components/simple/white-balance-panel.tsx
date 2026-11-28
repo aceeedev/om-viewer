@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { WhiteBalance, WhiteBalanceFineTune } from "@/lib/recipe";
 import * as fmt from "../format";
 import { HUE_SWATCHES, whiteBalanceMode } from "../sections";
-import { PanelColumn, SCREEN } from "./panel-column";
+import { DIMMED_TEXT, PanelColumn, SCREEN } from "./panel-column";
 import { SettingsScreen } from "./slider";
 import { BOX_CENTER, WB_SCREEN, cursorPosition } from "./white-balance-grid";
 
@@ -109,7 +109,7 @@ function FineTuneBox({ fineTune }: { fineTune: WhiteBalanceFineTune }) {
             className="screen-svg-text-15"
             fontWeight={600}
             fill="white"
-            fillOpacity={t.lit ? 1 : 0.4}
+            fillOpacity={t.lit ? 1 : DIMMED_TEXT}
           >
             {t.letter}
           </text>
