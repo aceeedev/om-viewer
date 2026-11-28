@@ -387,7 +387,7 @@ describe("text on the camera screens", () => {
 
   /**
    * Every color text is drawn in on a screen, by how it's set: SVG text (white unless its fill says
-   * otherwise, faded by fill-opacity), or a text or fill class like "text-white/65" or "fill-amber-400".
+   * otherwise, faded by fill-opacity), or a text or fill class like "text-white/60" or "fill-amber-400".
    */
   function textColors(screen: string): Map<string, Rgb> {
     const colors = new Map<string, Rgb>();
@@ -429,9 +429,9 @@ describe("text on the camera screens", () => {
         for (const [how, color] of textColors(screen)) ratios.set(how, contrast(color, SCREEN_BACKGROUND));
       }
     }
-    // The dimmed names and letters, the settings' labels and the asterisk are all among them.
+    // The dimmed names and letters, the white balance details and the asterisk are all among them.
     expect([...ratios.keys()]).toEqual(
-      expect.arrayContaining([`<text fill="white" fill-opacity="${DIMMED_TEXT}">`, "text-white/65", "text-amber-400", "fill-amber-400"]),
+      expect.arrayContaining([`<text fill="white" fill-opacity="${DIMMED_TEXT}">`, "text-white/60", "text-amber-400", "fill-amber-400"]),
     );
     for (const [how, ratio] of ratios) expect(ratio, how).toBeGreaterThanOrEqual(4.5);
   });
