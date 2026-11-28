@@ -55,16 +55,17 @@
 }
 
 /*
- * Black like the header and footer (THEME_COLOR in lib/site.ts): what browsers show when you scroll
- * past the top or bottom of the page, and in any strip around the page that a phone fills in itself.
- * The white is the body's own. The body is always at least the screen's height, and the page's main
- * pushes the footer to its bottom, so the black never shows between the header and footer.
+ * Black like the header and footer (THEME_COLOR in lib/site.ts), with the page's white only behind
+ * its main. Safari on iOS 26 ignores theme-color and colors the strips behind the status bar and the
+ * home indicator from the body's background, and browsers show it when you scroll past the top or
+ * bottom of the page. Each page's main grows to fill the space between the header and footer, so
+ * the black never shows there.
  */
-html {
+body {
   background: #000;
+  color: var(--foreground);
 }
 
-body {
+main {
   background: var(--background);
-  color: var(--foreground);
 }
