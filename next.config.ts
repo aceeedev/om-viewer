@@ -28,6 +28,27 @@ const contentSecurityPolicy = [
   ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
+/** Sent on every response: the CSP and the other standard security headers. */
+const securityHeaders = [
+  { key: "Content-Security-Policy", value: contentSecurityPolicy },
+  // Other sites never learn which page a visitor came from; our own pages still do. Photos opened by
+  // link and links to other sites already opt out one by one; this covers anything added later. Not
+  // "no-referrer", which also sends `Origin: null` on posts to our own site.
+  { key: "Referrer-Policy", value: "same-origin" },
+  // Features the site never uses, off for every page and anything embedded in one. Writing to the
+  // clipboard isn't listed, so copying text still works.
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  // Trust the Content-Type we send: a mislabelled file is never run as a script or style.
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  // Cuts the link to a window from another site that opens this one, or that this one opens, so it
+  // can't redirect or probe the page. Also gives the site its own process in Chrome on Android.
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  // HTTPS only, on this domain and every subdomain, for 2 years. Vercel sends a version without
+  // subdomains on its own. No `preload`: it lets anyone add the domain to the browsers' built-in list,
+  // which takes months to leave. Production only, so an HTTPS dev server doesn't pin localhost to HTTPS.
+  ...(isDev ? [] : [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }]),
+];
+
 const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
@@ -44,7 +65,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/:path*",
-        headers: [{ key: "Content-Security-Policy", value: contentSecurityPolicy }],
+        headers: securityHeaders,
       },
     ];
   },
