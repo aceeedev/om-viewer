@@ -7,7 +7,7 @@ import { buildOmJpeg, sampleCameraSettings, type Field } from "@/lib/exif/__test
 import { buildRecipe, type Recipe } from "@/lib/recipe";
 import { SAMPLES_DIR, sampleFiles } from "@/lib/test-utils/samples";
 import { FullView } from "../full-view";
-import { RecipeViewer } from "../recipe-viewer";
+import { LoadError, RecipeViewer } from "../recipe-viewer";
 import { pictureModeName, profileSections } from "../sections";
 import { SimpleView } from "../simple-view";
 
@@ -73,7 +73,7 @@ describe("SimpleView", () => {
   it("marks each setting's value on its scale, lit out from 0", () => {
     const recipe = syntheticRecipe([mode(9)]);
     const html = renderToStaticMarkup(<SimpleView recipe={recipe} />);
-    const marker = (left: string) => `ring-2 ring-screen" style="left:${left}"`;
+    const marker = (left: string) => `ring-[length:calc(var(--spacing)/2)] ring-screen" style="left:${left}"`;
     // Contrast −2 on −2..+2: the marker at the left end, lit from there to 0 in the middle.
     expect(html).toContain(marker("0%"));
     expect(html).toContain('style="left:0%;width:50%"');
@@ -111,9 +111,9 @@ describe("SimpleView", () => {
       /Settings Shading Effect −3 \(−5 to \+5\) Film Grain High \(Off, Low, Medium, High\) Toning Normal \(Normal, Sepia, Blue, Purple, Green\) Sharpness −1 \(−2 to \+2\) Contrast −2 \(−2 to \+2\) Exposure Comp −0\.7/,
     );
     // Grain High: the right end, lit all the way from Off (a range from 0 is lit from its start).
-    expect(html).toContain('ring-2 ring-screen" style="left:100%"');
+    expect(html).toContain('ring-[length:calc(var(--spacing)/2)] ring-screen" style="left:100%"');
     expect(html).toContain('style="left:0%;width:100%"');
-    expect(html).toContain('title="Normal" class="size-3 rounded-full ring-2 ring-white');
+    expect(html).toContain('title="Normal" class="size-3 rounded-full ring-[length:calc(var(--spacing)/2)] ring-white');
     // The Full view still lists the stored strength.
     expect(text(<FullView recipe={recipe} />)).toContain("Filter strength");
   });
@@ -139,7 +139,7 @@ describe("SimpleView", () => {
     // A ring per level (1–3), each an octagon like the outline.
     expect(html.match(/<polygon points="(?:[^ "]+ ){7}[^ "]+" stroke-opacity="0.28"/g)).toHaveLength(3);
     expect(t).toContain("Toning Sepia");
-    expect(html).toContain('title="Sepia" class="size-3 rounded-full ring-2 ring-white');
+    expect(html).toContain('title="Sepia" class="size-3 rounded-full ring-[length:calc(var(--spacing)/2)] ring-white');
     expect(html).toContain('title="Normal" class="size-3 rounded-full opacity-55');
   });
 
@@ -223,7 +223,7 @@ describe("SimpleView", () => {
       /A2\.G2 .* Settings Effect High \(Low, Standard, High\) Saturation ±0 \(−2 to \+2\) Sharpness −1 \(−2 to \+2\) Contrast −2 \(−2 to \+2\) Gradation Normal \(Low Key, Normal, High Key\) Exposure Comp −0\.7/,
     );
     const html = renderToStaticMarkup(<SimpleView recipe={enhance} />);
-    expect(html).toContain('ring-2 ring-screen" style="left:100%"'); // effect High: the right end
+    expect(html).toContain('ring-[length:calc(var(--spacing)/2)] ring-screen" style="left:100%"'); // effect High: the right end
     expect(html).not.toContain("<table");
 
     const vivid = text(<SimpleView recipe={syntheticRecipe([mode(1)])} />);
@@ -255,9 +255,9 @@ describe("SimpleView", () => {
       /Settings Color Filter Red \(None, Yellow, Orange, Red, Green\) Toning Sepia \(Normal, Sepia, Blue, Purple, Green\) Sharpness −1 .* Contrast −2 .* Gradation Normal .* Exposure Comp/,
     );
     expect(html).toContain(
-      'title="Red" class="size-3 rounded-full ring-2 ring-white ring-offset-2 ring-offset-screen" style="background-color:#eb3062"',
+      'title="Red" class="size-3 rounded-full ring-[length:calc(var(--spacing)/2)] ring-white ring-offset-[length:calc(var(--spacing)/2)] ring-offset-screen" style="background-color:#eb3062"',
     );
-    expect(html).toContain('title="Sepia" class="size-3 rounded-full ring-2');
+    expect(html).toContain('title="Sepia" class="size-3 rounded-full ring-[length:');
     // Not recorded (ExifTool's "n/a"): no rows.
     const none = text(<SimpleView recipe={syntheticRecipe([mode(256)])} />);
     expect(none).not.toContain("Color Filter");
@@ -277,6 +277,20 @@ describe("SimpleView", () => {
     expect(t).not.toContain("Sharpness");
     const noEffect = syntheticRecipe([mode(17), { tag: 0x0529, type: "u16", value: [19, 0, 0, 0] }, { tag: 0x052f, type: "u16", value: new Array(20).fill(0) }]);
     expect(text(<SimpleView recipe={noEffect} />)).toContain("Effect Off");
+  });
+
+  it("puts screens two to a row on phones (one below 360px), each scaled to its own column, with larger text on narrow ones", () => {
+    for (const id of [9, 7, 12, 17, 99]) {
+      const html = renderToStaticMarkup(<SimpleView recipe={syntheticRecipe([mode(id)])} />);
+      expect(html, `mode ${id}`).toContain(
+        'class="grid grid-cols-1 items-start gap-6 min-[22.5rem]:grid-cols-2 min-[22.5rem]:gap-3 ' +
+          'sm:flex sm:flex-wrap sm:gap-6 min-[22.5rem]:max-[30rem]:[--screen-text-boost:1.25]"',
+      );
+      const columns = html.match(/class="@container flex w-full max-w-70/g) ?? [];
+      const screens = html.match(/rounded-xl bg-screen screen-scale/g) ?? [];
+      expect(screens.length, `mode ${id}`).toBeGreaterThan(0);
+      expect(screens.length, `mode ${id}`).toBe(columns.length);
+    }
   });
 
   it("draws every picture mode as panels, with no plain tables left", () => {
@@ -320,6 +334,20 @@ describe("RecipeViewer", () => {
     expect(html).toContain('type="file"');
     expect(html).toContain('accept="image/jpeg,.jpg,.jpeg"');
     expect(text(<RecipeViewer />)).toContain("Drop an OM System JPEG here");
+  });
+});
+
+describe("LoadError", () => {
+  it("has both wordings when phones get their own, one hidden on phones and the other only on phones", () => {
+    const html = renderToStaticMarkup(<LoadError fileName="a.jpg" message="Drop it here." phoneMessage="Open it here." />);
+    expect(html).toContain('<span class="phone:hidden">Drop it here.</span>');
+    expect(html).toContain('<span class="hidden phone:inline">Open it here.</span>');
+  });
+
+  it("shows a message phones share as plain text after the file name", () => {
+    const error = <LoadError fileName="notes.txt" message="This file isn't a JPEG." />;
+    expect(renderToStaticMarkup(error)).not.toContain("phone:");
+    expect(text(error).trim()).toBe("notes.txt: This file isn't a JPEG.");
   });
 });
 

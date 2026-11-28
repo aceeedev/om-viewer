@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Recipe } from "@/lib/recipe";
 import { randomSample, samplePath, type SamplePhoto } from "@/lib/sample-photos";
-import { DropZone } from "./drop-zone";
+import { DROP_WORDING, DropZone, PHONE_WORDING } from "./drop-zone";
 import { FullView } from "./full-view";
 import { loadPhotoFile, loadPhotoUrl, type LoadResult } from "./load-photo";
 import { SampleCredit, SampleSourceNote, TrySampleButton } from "./samples";
@@ -19,7 +19,7 @@ interface Origin {
 type ViewerState =
   | { status: "idle" }
   | ({ status: "reading"; fileName: string } & Origin)
-  | ({ status: "error"; fileName: string; message: string } & Origin)
+  | ({ status: "error"; fileName: string; message: string; phoneMessage?: string } & Origin)
   | ({ status: "ready"; fileName: string; recipe: Recipe; previewUrl: string } & Origin);
 
 type View = "simple" | "full";
@@ -59,7 +59,13 @@ export function RecipeViewer() {
               previewUrl: URL.createObjectURL(result.file),
               ...origin,
             }
-          : { status: "error", fileName: result.fileName, message: result.message, ...origin },
+          : {
+              status: "error",
+              fileName: result.fileName,
+              message: result.message,
+              phoneMessage: result.phoneMessage,
+              ...origin,
+            },
       );
     },
     [],
@@ -138,13 +144,7 @@ export function RecipeViewer() {
           initialUrl={state.status === "idle" ? undefined : state.url}
         />
         {state.status === "error" && (
-          <p
-            role="alert"
-            className="rounded-md border-[1.5px] border-red-700 bg-red-50 px-4 py-3 text-sm text-red-800"
-          >
-            {/* wrap-anywhere: a pasted link has no spaces to break at. */}
-            <span className="font-medium wrap-anywhere">{state.fileName}:</span> {state.message}
-          </p>
+          <LoadError fileName={state.fileName} message={state.message} phoneMessage={state.phoneMessage} />
         )}
         <div className="flex flex-col items-center gap-3 pt-4 text-center">
           <div className="flex flex-col items-center gap-x-4 gap-y-2 sm:flex-row">
@@ -199,6 +199,27 @@ export function RecipeViewer() {
         {view === "simple" ? <SimpleView recipe={recipe} /> : <FullView recipe={recipe} />}
       </div>
     </div>
+  );
+}
+
+/**
+ * Why a photo didn't open, after its file name or link. Both wordings are in the page when phones
+ * get their own (see `DROP_WORDING`), and only the one showing is read out.
+ */
+export function LoadError({ fileName, message, phoneMessage }: { fileName: string; message: string; phoneMessage?: string }) {
+  return (
+    <p role="alert" className="rounded-md border-[1.5px] border-red-700 bg-red-50 px-4 py-3 text-sm text-red-800">
+      {/* wrap-anywhere: a pasted link has no spaces to break at. */}
+      <span className="font-medium wrap-anywhere">{fileName}:</span>{" "}
+      {phoneMessage ? (
+        <>
+          <span className={DROP_WORDING}>{message}</span>
+          <span className={PHONE_WORDING}>{phoneMessage}</span>
+        </>
+      ) : (
+        message
+      )}
+    </p>
   );
 }
 

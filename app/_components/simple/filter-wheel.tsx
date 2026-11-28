@@ -94,7 +94,7 @@ export function FilterWheel({ filter, level }: { filter: Choice | undefined; lev
             y={READOUT_INSET + 10}
             textAnchor="end"
             dominantBaseline="central"
-            fontSize={15}
+            className="screen-svg-text-15"
             fontWeight={600}
             fill="white"
             fillOpacity={selected ? 1 : DIMMED_LABEL}
@@ -148,6 +148,8 @@ export function FilterWheel({ filter, level }: { filter: Choice | undefined; lev
           )}
           {FILTERS.map((f, i) => {
             const [x, y] = labelCenter(i, f.width);
+            // A fixed size: each name is placed clear of the octagon by its width at 15px, and
+            // enlarged on a phone, "Yellow-green" would run into "Yellow".
             return (
               <text
                 key={f.name}

@@ -6,6 +6,13 @@ const noop = () => {};
 const render = (props: Partial<React.ComponentProps<typeof DropZone>> = {}) =>
   renderToStaticMarkup(<DropZone onFile={noop} onUrl={noop} dragging={false} {...props} />);
 
+/** The class of the span whose whole text is `text`. */
+function classOf(html: string, text: string): string {
+  const match = new RegExp(`<span class="([^"]*)">${text}</span>`).exec(html);
+  expect(match, `a span reading "${text}"`).not.toBeNull();
+  return match![1];
+}
+
 describe("DropZone", () => {
   for (const compact of [false, true]) {
     it(`keeps the link field outside the file picker's label${compact ? " (compact)" : ""}`, () => {
@@ -22,6 +29,20 @@ describe("DropZone", () => {
   it("names the link field for screen readers in both sizes", () => {
     expect(render()).toContain("or paste a link to one");
     expect(render({ compact: true })).toMatch(/<label[^>]*class="sr-only"[^>]*>Image link<\/label>/);
+  });
+
+  it("hides the drop wording on phones, which can't drag and drop", () => {
+    const html = render();
+    expect(classOf(html, "Drop an OM System JPEG here")).toContain("phone:hidden");
+    expect(classOf(html, "or")).toContain("phone:hidden");
+    expect(classOf(render({ compact: true }), "or drop one anywhere on the page")).toContain("phone:hidden");
+  });
+
+  it("asks phones to open a photo instead, with the same button", () => {
+    const html = render();
+    expect(classOf(html, "Open an OM System JPEG")).toMatch(/(^| )hidden phone:inline( |$)/);
+    expect(classOf(html, "Choose a photo")).not.toContain("phone:");
+    expect(classOf(render({ compact: true }), "Open another photo")).not.toContain("phone:");
   });
 
   it("shows a link that failed to open again", () => {

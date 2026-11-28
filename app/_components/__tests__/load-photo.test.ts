@@ -43,7 +43,10 @@ describe("loadPhotoUrl", () => {
     );
     const result = await loadPhotoUrl("  https://example.com/a.jpg ");
     expect(result).toMatchObject({ ok: false, fileName: "https://example.com/a.jpg" });
-    if (!result.ok) expect(result.message).toContain("drop it here instead");
+    if (!result.ok) {
+      expect(result.message).toContain("drop it here instead");
+      expect(result.phoneMessage).toContain("open it here instead");
+    }
   });
 
   it("labels a downloaded file that isn't a photo with its name", async () => {

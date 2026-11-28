@@ -23,9 +23,10 @@ function WhiteBalanceScreen({ wb }: { wb: WhiteBalance }) {
     <PanelColumn>
       <div className={`text-white ${SCREEN}`}>
         <h3 className="sr-only">White balance</h3>
-        {/* Two lines tall either way, so the screen stays square. */}
-        <div className={`flex flex-col px-5 pt-3.5 ${ft ? "h-15" : "pb-3.5"}`}>
-          <p className="flex items-baseline justify-between gap-3 text-[15px] font-semibold tabular-nums">
+        {/* Two lines tall either way, so the screen stays square. The lines keep their height when
+            the text is enlarged on a phone (see PanelRow). */}
+        <div className={`flex flex-col px-5 pt-3.5 leading-[calc(1.5/var(--screen-text-boost,1))] ${ft ? "h-15" : "pb-3.5"}`}>
+          <p className="flex items-baseline justify-between gap-3 screen-text-15 font-semibold tabular-nums">
             {mode && (
               <span>
                 {mode.name}
@@ -33,7 +34,7 @@ function WhiteBalanceScreen({ wb }: { wb: WhiteBalance }) {
               </span>
             )}
             {ft && (
-              <span className="text-[17px]" title={`Fine-tune: ${fmt.fineTuneWords(ft.amber.value, ft.green.value)}`}>
+              <span className="screen-text-17" title={`Fine-tune: ${fmt.fineTuneWords(ft.amber.value, ft.green.value)}`}>
                 <span aria-hidden="true">{fmt.fineTune(ft.amber.value, ft.green.value)}</span>
                 <span className="sr-only">
                   fine-tune {fmt.fineTuneWords(ft.amber.value, ft.green.value)} (
@@ -43,7 +44,7 @@ function WhiteBalanceScreen({ wb }: { wb: WhiteBalance }) {
             )}
           </p>
           {mode && mode.details.length > 0 && (
-            <p aria-hidden="true" className="text-[13px] text-white/60">
+            <p aria-hidden="true" className="screen-text-13 text-white/60">
               {mode.details.join(" · ")}
             </p>
           )}
@@ -105,7 +106,7 @@ function FineTuneBox({ fineTune }: { fineTune: WhiteBalanceFineTune }) {
             y={t.y + t.h / 2}
             textAnchor="middle"
             dominantBaseline="central"
-            fontSize={15}
+            className="screen-svg-text-15"
             fontWeight={600}
             fill="white"
             fillOpacity={t.lit ? 1 : 0.4}
@@ -137,8 +138,8 @@ function FineTuneBox({ fineTune }: { fineTune: WhiteBalanceFineTune }) {
 }
 
 /**
- * The white balance screen, then the mode's other settings on a screen of their own beside it
- * (below it on narrow screens). Without settings it's white balance on its own.
+ * The white balance screen, then the mode's other settings on a screen of their own next to it
+ * (on the next row when that one's full). Without settings it's white balance on its own.
  */
 export function WhiteBalanceAndSliders({ wb, children }: { wb: WhiteBalance; children?: ReactNode }) {
   return (

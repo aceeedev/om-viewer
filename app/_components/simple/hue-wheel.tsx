@@ -95,7 +95,7 @@ export function HueWheel({ hues }: { hues: HueSaturation[] }) {
                   y={y}
                   textAnchor="middle"
                   dominantBaseline="central"
-                  fontSize={17}
+                  className="screen-svg-text-17"
                   fontWeight={600}
                   fill="white"
                 >

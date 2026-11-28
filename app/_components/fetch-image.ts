@@ -13,6 +13,8 @@ export type FetchImageErrorCode =
 export interface FetchImageError {
   code: FetchImageErrorCode;
   message: string;
+  /** The message on phones, where it differs: they can't drop a file, so it says to open one. */
+  phoneMessage?: string;
 }
 
 export type FetchImageResult = { ok: true; file: File } | { ok: false; error: FetchImageError };
@@ -141,7 +143,7 @@ export function fileNameFrom(url: URL): string {
 }
 
 function failure(code: FetchImageErrorCode): { ok: false; error: FetchImageError } {
-  return { ok: false, error: { code, message: MESSAGES[code] } };
+  return { ok: false, error: { code, message: MESSAGES[code], phoneMessage: PHONE_MESSAGES[code] } };
 }
 
 function httpFailure(status: number): { ok: false; error: FetchImageError } {
@@ -178,4 +180,12 @@ const MESSAGES: Record<FetchImageErrorCode, string> = {
   "too-large": `That image is over ${MAX_IMAGE_BYTES / 1024 / 1024} MB, too big to open here.`,
   timeout: "That site stopped responding. Try again, or download the photo and drop it here instead.",
   aborted: "Stopped loading that link.",
+};
+
+/** The messages that say to drop the photo, as phones get them. */
+const PHONE_MESSAGES: Partial<Record<FetchImageErrorCode, string>> = {
+  blocked:
+    "Couldn't load that link. The site may not let other pages read its images, or it may be offline. " +
+    "Download the photo and open it here instead.",
+  timeout: "That site stopped responding. Try again, or download the photo and open it here instead.",
 };

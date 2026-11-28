@@ -39,7 +39,7 @@ export function ToneCurvePanel({ tone }: { tone: ToneLevels }) {
                 y={TONE.labelY}
                 textAnchor={anchor}
                 dominantBaseline="central"
-                fontSize={17}
+                className="screen-svg-text-17"
                 fontWeight={600}
                 fill="white"
               >

@@ -83,7 +83,7 @@ function ColorCreatorWheel({ hue, saturation }: { hue: Ranged; saturation: Range
           aria-hidden="true"
           className="relative block w-full tabular-nums"
         >
-          <g fontSize={17} fontWeight={600} fill="white">
+          <g className="screen-svg-text-17" fontWeight={600} fill="white">
             <text x={VALUES_INSET} y={VALUES_Y} dominantBaseline="central">
               Hue<tspan className="fill-amber-400">*</tspan> {hue.value}
             </text>

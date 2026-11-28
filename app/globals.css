@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+/*
+ * Phones: a touchscreen whose short side is under 600px, in either orientation. Tablets are wider
+ * than that both ways, and computers (touch laptops too) have a mouse or trackpad, so they keep
+ * the drag-and-drop wording. Both wordings are in the page and CSS picks one, so the page stays
+ * static and nothing changes after it loads.
+ */
+@custom-variant phone {
+  @media (pointer: coarse) and (width < 600px), (pointer: coarse) and (height < 600px) {
+    @slot;
+  }
+}
+
 /* The site is light only. */
 :root {
   --background: #ffffff;
@@ -14,6 +26,32 @@
   --font-mono: var(--font-geist-mono);
   /* The camera-style screens behind the Simple view's panels. */
   --color-screen: #0b0b0d;
+}
+
+/*
+ * The Simple view's camera screens are drawn 280px wide and shrink with their column, so two fit
+ * side by side on a phone. Their SVGs scale by themselves; `screen-scale` scales the rest of a
+ * screen with them, by measuring Tailwind's spacing (and the corner radius) in the screen's width:
+ * one unit is a 70th of it, the usual 4px at full size. The width is the nearest @container's,
+ * which is the screen's PanelColumn.
+ */
+@utility screen-scale {
+  --spacing: calc(100cqw / 70);
+  --radius-xl: calc(var(--spacing) * 3);
+}
+
+/*
+ * Text on a camera screen, in pixels at full size: screen-text-15 is 15px on a 280px screen. On a
+ * narrow phone that would be too small to read, so the panel row sets --screen-text-boost there
+ * to enlarge the text (only the text: see PanelRow).
+ */
+@utility screen-text-* {
+  font-size: calc(var(--spacing) * --value(number) / 4 * var(--screen-text-boost, 1));
+}
+
+/* The same for text in a screen's SVG, whose units already scale with the screen. */
+@utility screen-svg-text-* {
+  font-size: calc(--value(number) * 1px * var(--screen-text-boost, 1));
 }
 
 body {

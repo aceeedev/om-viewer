@@ -15,11 +15,16 @@ interface DropZoneProps {
 
 const FOCUS_RING = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black";
 
+/** Wording about dropping a file, which phones can't do. Hidden there (see `phone` in globals.css). */
+export const DROP_WORDING = "phone:hidden";
+/** What phones show in its place. */
+export const PHONE_WORDING = "hidden phone:inline";
+
 /**
  * File picker styled as a drop target, with a solid button like OM System's own pages but faintly
  * rounded corners, and a field for pasting an image link under it. The file picker's part of the box
  * is its label, so clicking there opens the file dialog; the link field is kept outside that label so
- * clicking into it doesn't.
+ * clicking into it doesn't. Phones get the same box without the drop wording.
  */
 export function DropZone({ onFile, onUrl, dragging, busy = false, compact = false, initialUrl }: DropZoneProps) {
   const fileId = useId();
@@ -53,7 +58,7 @@ export function DropZone({ onFile, onUrl, dragging, busy = false, compact = fals
         >
           {fileInput}
           <span className="text-sm font-bold">Open another photo</span>
-          <span className="text-xs opacity-70">or drop one anywhere on the page</span>
+          <span className={`text-xs opacity-70 ${DROP_WORDING}`}>or drop one anywhere on the page</span>
         </label>
         {linkForm}
       </div>
@@ -76,8 +81,11 @@ export function DropZone({ onFile, onUrl, dragging, busy = false, compact = fals
           <span className="text-xl font-extrabold font-stretch-expanded">Reading…</span>
         ) : (
           <>
-            <span className="text-xl font-extrabold font-stretch-expanded">Drop an OM System JPEG here</span>
-            <span className="text-sm text-zinc-500">or</span>
+            <span className={`text-xl font-extrabold font-stretch-expanded ${DROP_WORDING}`}>
+              Drop an OM System JPEG here
+            </span>
+            <span className={`text-xl font-extrabold font-stretch-expanded ${PHONE_WORDING}`}>Open an OM System JPEG</span>
+            <span className={`text-sm text-zinc-500 ${DROP_WORDING}`}>or</span>
             {/* The file input is hidden, so its keyboard focus shows on this button instead. */}
             <span
               className={
