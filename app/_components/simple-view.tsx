@@ -4,6 +4,7 @@ import { ColorCreatorPanel } from "./simple/color-creator-panel";
 import { ColorProfilePanel } from "./simple/color-profile-panel";
 import { MonochromeProfilePanel } from "./simple/monochrome-profile-panel";
 import { ArtPanel, MonotonePanel, StandardPanel, UnknownModePanel } from "./simple/picture-mode-panels";
+import { FineTuneNote } from "./simple/white-balance-panel";
 
 /** Only the controls the shot's picture mode lets you edit on the camera. */
 export function SimpleView({ recipe }: { recipe: Recipe }) {
@@ -15,7 +16,11 @@ export function SimpleView({ recipe }: { recipe: Recipe }) {
         <p className="text-xs font-semibold font-stretch-expanded uppercase tracking-widest text-zinc-500">Picture mode</p>
         <h2 className="text-2xl font-extrabold font-stretch-expanded">{pictureModeName(profile.mode)}</h2>
       </div>
-      <ModePanels recipe={recipe} />
+      {/* The same spacing as the panels' own notes. */}
+      <div className="flex flex-col gap-4">
+        <ModePanels recipe={recipe} />
+        <FineTuneNote wb={recipe.whiteBalance} />
+      </div>
     </div>
   );
 }

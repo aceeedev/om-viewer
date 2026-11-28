@@ -177,6 +177,16 @@ describe("SimpleView", () => {
     for (const color of ["#3a66ed", "#d227b0"]) expect(html).toMatch(new RegExp(`<polygon points="[^"]*" fill="${color}"`));
   });
 
+  it("spells out the fine-tune under the screens on touch screens, which can't hover", () => {
+    const recipe = syntheticRecipe([mode(12), { tag: 0x0502, type: "s16", value: [-3, -1] }]);
+    const html = renderToStaticMarkup(<SimpleView recipe={recipe} />);
+    expect(html).toContain(
+      '<p aria-hidden="true" class="hidden text-xs text-zinc-600 pointer-coarse:block">White balance fine-tune B3.M1: blue 3, magenta 1</p>',
+    );
+    // Computers keep the tooltip on the screen.
+    expect(html).toContain('title="Fine-tune: blue 3, magenta 1"');
+  });
+
   it("leaves out the fine-tune box when the shot has no two-value fine-tune", () => {
     const recipe = syntheticRecipe([mode(12), { tag: 0x0500, type: "u16", value: [1] }, { tag: 0x0502, type: "s16", value: [3] }]);
     const html = renderToStaticMarkup(<SimpleView recipe={recipe} />);
