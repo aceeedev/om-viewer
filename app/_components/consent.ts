@@ -45,6 +45,13 @@ export interface ConsentStore {
   choose(choice: ConsentChoice): void;
   /** Opens the settings again, from the footer link. */
   openSettings(): void;
+  /** Closes the settings without changing the answer. */
+  closeSettings(): void;
+}
+
+/** Whether the banner shows: until the visitor answers, and whenever they open the cookie settings. */
+export function bannerShown({ status, settingsOpen }: ConsentSnapshot): boolean {
+  return status === "undecided" || (settingsOpen && status !== "unknown");
 }
 
 const SERVER_SNAPSHOT: ConsentSnapshot = { status: "unknown", settingsOpen: false };
@@ -122,6 +129,11 @@ export function createConsentStore(env: ConsentEnv): ConsentStore {
 
     openSettings() {
       settingsOpen = true;
+      notify();
+    },
+
+    closeSettings() {
+      settingsOpen = false;
       notify();
     },
   };

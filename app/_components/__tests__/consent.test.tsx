@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
-import { CONSENT_STORAGE_KEY, createConsentStore, useConsent, type ConsentEnv } from "../consent";
+import { bannerShown, CONSENT_STORAGE_KEY, createConsentStore, useConsent, type ConsentEnv } from "../consent";
 
 interface FakeOptions {
   /** What local storage already holds under the consent key. */
@@ -93,6 +93,17 @@ describe("consent store", () => {
     expect(store.getSnapshot()).toEqual({ status: "denied", settingsOpen: true });
   });
 
+  it("closes the settings without changing the answer", () => {
+    const { store, items } = fakeBrowser({ stored: "granted" });
+    const listener = vi.fn();
+    store.subscribe(listener);
+    store.openSettings();
+    store.closeSettings();
+    expect(store.getSnapshot()).toEqual({ status: "granted", settingsOpen: false });
+    expect(items.get(CONSENT_STORAGE_KEY)).toBe("granted");
+    expect(listener).toHaveBeenCalledTimes(2);
+  });
+
   it("returns the same snapshot until something changes", () => {
     const { store } = fakeBrowser();
     const first = store.getSnapshot();
@@ -157,6 +168,30 @@ describe("consent store", () => {
     expect(watchers.size).toBe(0);
     store.subscribe(() => {});
     expect(watchers.size).toBe(1);
+  });
+});
+
+describe("bannerShown", () => {
+  it("shows until the visitor answers", () => {
+    expect(bannerShown({ status: "undecided", settingsOpen: false })).toBe(true);
+    expect(bannerShown({ status: "granted", settingsOpen: false })).toBe(false);
+    expect(bannerShown({ status: "denied", settingsOpen: false })).toBe(false);
+  });
+
+  it("stays hidden under Global Privacy Control, unless the visitor opens the settings", () => {
+    expect(bannerShown({ status: "gpc", settingsOpen: false })).toBe(false);
+    expect(bannerShown({ status: "gpc", settingsOpen: true })).toBe(true);
+  });
+
+  it("shows whenever the settings are open", () => {
+    for (const status of ["undecided", "granted", "denied"] as const) {
+      expect(bannerShown({ status, settingsOpen: true })).toBe(true);
+    }
+  });
+
+  it("never shows on the server or while hydrating", () => {
+    expect(bannerShown({ status: "unknown", settingsOpen: false })).toBe(false);
+    expect(bannerShown({ status: "unknown", settingsOpen: true })).toBe(false);
   });
 });
 

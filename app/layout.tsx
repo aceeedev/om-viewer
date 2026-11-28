@@ -10,6 +10,7 @@ import {
   THEME_COLOR,
   TITLE_TEMPLATE,
 } from "@/lib/site";
+import { ConsentBanner } from "./_components/consent-banner";
 import { GoogleAnalytics } from "./_components/google-analytics";
 import { SiteFooter, SiteHeader } from "./_components/site-chrome";
 import "./globals.css";
@@ -55,6 +56,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${archivo.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* First, so keyboard and screen reader users reach it before the page. It shows at the bottom.
+            Dev builds show it too, to work on it, but only production builds load Google Analytics. */}
+        {GA_MEASUREMENT_ID && <ConsentBanner />}
         <SiteHeader />
         {children}
         <SiteFooter />

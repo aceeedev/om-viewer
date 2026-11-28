@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { GA_MEASUREMENT_ID } from "@/lib/site";
+import { CookieSettingsButton } from "./cookie-settings-button";
 
 /** The site's name as a wordmark: Archivo, wide and extra-bold. */
 const WORDMARK = "font-extrabold font-stretch-expanded";
@@ -62,7 +64,8 @@ export function PageIntro({ title, children }: { title: ReactNode; children?: Re
 
 /**
  * The black band along the bottom: the site's name with the note that it's unofficial under it, and
- * links to the site's other pages beside them (below them on narrow screens).
+ * links to the site's other pages beside them (below them on narrow screens). Cookie settings is
+ * there too when the site has analytics.
  */
 export function SiteFooter() {
   return (
@@ -84,6 +87,12 @@ export function SiteFooter() {
                 </Link>
               </li>
             ))}
+            {GA_MEASUREMENT_ID && (
+              <li>
+                {/* A pointer like the links beside it; the site's other buttons keep the arrow. */}
+                <CookieSettingsButton className={`${NAV_LINK} cursor-pointer`} />
+              </li>
+            )}
           </ul>
         </nav>
       </div>
