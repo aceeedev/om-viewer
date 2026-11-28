@@ -138,22 +138,6 @@ function FineTuneBox({ fineTune }: { fineTune: WhiteBalanceFineTune }) {
 }
 
 /**
- * What the fine-tune's letters mean ("White balance fine-tune A4.G0: amber 4, green 0"), under the
- * screens on touch screens, which can't hover to see the screen's tooltip. Screen readers already
- * hear it on the screen itself, so it's hidden from them here.
- */
-export function FineTuneNote({ wb }: { wb: WhiteBalance }) {
-  const ft = wb.fineTune;
-  if (!ft) return null;
-  return (
-    <p aria-hidden="true" className="hidden text-xs text-zinc-600 pointer-coarse:block">
-      White balance fine-tune {fmt.fineTune(ft.amber.value, ft.green.value)}:{" "}
-      {fmt.fineTuneWords(ft.amber.value, ft.green.value)}
-    </p>
-  );
-}
-
-/**
  * The white balance screen, then the mode's other settings on a screen of their own next to it
  * (on the next row when that one's full). Without settings it's white balance on its own.
  */
